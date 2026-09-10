@@ -1,0 +1,28 @@
+AUDITOR UA — PUBLICACIÓN EN GITHUB PAGES
+
+1) Crear repositorio: auditor-ua
+2) Subir TODO el contenido de este ZIP a la raíz del repositorio.
+3) Confirmar que la rama sea main.
+4) Ir a Settings > Pages.
+5) En Source elegir GitHub Actions.
+6) Ir a Actions y verificar que el workflow termine correctamente.
+7) Abrir la URL publicada por GitHub Pages.
+
+ARCHIVOS PRINCIPALES
+- index.html
+- config.js
+- assets/
+- .nojekyll
+- .github/workflows/deploy-pages.yml
+
+BACKEND
+La app espera:
+POST /api/audit
+POST /api/report
+POST /api/audit-batch
+POST /api/paraphrase
+
+Si el backend vive fuera de GitHub Pages, modificar config.js:
+window.__AUDITOR_API_BASE__ = "https://SU-BACKEND";
+
+El backend deberá aceptar CORS desde la URL de GitHub Pages.
