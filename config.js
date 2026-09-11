@@ -1,194 +1,117 @@
 /**
  * ============================================================
- * AUDITOR UA — CONFIGURACIÓN DE CONEXIÓN
+ * AUDITOR UA
  * Universidad Autónoma del Perú
- * ============================================================
  *
- * Este archivo se carga ANTES de la aplicación principal.
- *
- * La aplicación compilada actualmente contiene:
- *     port/5000
- *
- * Este archivo intercepta esas llamadas y las redirige
- * al backend que definamos en API_BASE.
+ * Frontend: GitHub Pages
+ * Backend seguro: n8n → Render AutorIA
  * ============================================================
  */
 
 (function () {
   "use strict";
 
-  /**
-   * ==========================================================
-   * 1. BACKEND
-   * ==========================================================
-   *
-   * PRIMERA ETAPA:
-   * Dejamos vacío mientras comprobamos GitHub Pages.
-   *
-   * MÁS ADELANTE:
-   * Ejemplo:
-   *
-   * const API_BASE = "https://ua-auditor-018.onrender.com";
-   *
-   * IMPORTANTE:
-   * El backend tendrá que disponer de las rutas que utiliza
-   * esta aplicación:
-   *
-   * /api/audit
-   * /api/report
-   * /api/audit-batch
-   * /api/paraphrase
-   */
-
-  const API_BASE = "";
-
-  /**
-   * ==========================================================
-   * 2. CONFIGURACIÓN GLOBAL
-   * ==========================================================
-   */
+  const API_BASE =
+    "https://autonoma-del-peru.app.n8n.cloud/webhook/auditor-ua-api";
 
   window.AUDITOR_UA_CONFIG = {
     appName: "Auditor UA",
     institution: "Universidad Autónoma del Perú",
-
     apiBase: API_BASE,
-
-    version: "1.0.0",
-
-    normas: {
-      res018: true,
-      res088: true,
-      res023: true,
-      apa7: true
-    },
-
-    endpoints: {
-      audit: "/api/audit",
-      report: "/api/report",
-      batch: "/api/audit-batch",
-      paraphrase: "/api/paraphrase"
-    }
+    version: "1.0.0"
   };
-
-  /**
-   * Mantener también esta variable por compatibilidad futura.
-   */
-  window.__AUDITOR_API_BASE__ = API_BASE;
-
-  /**
-   * ==========================================================
-   * 3. INTERCEPTOR FETCH
-   * ==========================================================
-   *
-   * El JavaScript compilado actualmente intenta llamar:
-   *
-   * port/5000/api/...
-   *
-   * Aquí reemplazamos automáticamente "port/5000"
-   * por la dirección real del backend.
-   */
 
   const originalFetch = window.fetch.bind(window);
 
-  window.fetch = function (resource, options) {
+  window.fetch = async function (resource, options = {}) {
 
-    let url = resource;
+    let url =
+      typeof resource === "string"
+        ? resource
+        : resource.url;
 
-    /**
-     * Cuando fetch recibe un Request.
+    /*
+     * AUDITOR INDIVIDUAL
      */
-    if (resource instanceof Request) {
-      url = resource.url;
+    if (
+      url.includes("port/5000/api/audit") ||
+      url.endsWith("/api/audit")
+    ) {
+      url = API_BASE + "/audit";
     }
 
-    /**
-     * Cuando fetch recibe una cadena.
+    /*
+     * INFORMES
      */
-    if (typeof url === "string") {
-
-      /**
-       * Caso:
-       * port/5000/api/audit
-       */
-      if (url.startsWith("port/5000")) {
-
-        const path = url.substring("port/5000".length);
-
-        /**
-         * Si ya tenemos backend configurado.
-         */
-        if (API_BASE) {
-
-          const backend =
-            API_BASE.endsWith("/")
-              ? API_BASE.slice(0, -1)
-              : API_BASE;
-
-          const apiPath =
-            path.startsWith("/")
-              ? path
-              : "/" + path;
-
-          url = backend + apiPath;
-
-        } else {
-
-          /**
-           * Mientras todavía no conectamos Render,
-           * eliminamos "port/5000".
-           *
-           * Esto permite que la interfaz cargue sin utilizar
-           * esa dirección inválida.
-           */
-          url = path.startsWith("/")
-            ? path
-            : "/" + path;
-        }
-      }
+    else if (
+      url.includes("port/5000/api/report") ||
+      url.endsWith("/api/report")
+    ) {
+      url = API_BASE + "/report";
     }
 
-    /**
-     * Reconstruir Request cuando corresponda.
+    /*
+     * AUDITORÍA POR LOTE
      */
-    if (resource instanceof Request) {
-
-      const newRequest = new Request(url, resource);
-
-      return originalFetch(newRequest, options);
+    else if (
+      url.includes("port/5000/api/audit-batch") ||
+      url.endsWith("/api/audit-batch")
+    ) {
+      url = API_BASE + "/audit-batch";
     }
 
-    return originalFetch(url, options);
+    /*
+     * PARAFRASEADOR
+     */
+    else if (
+      url.includes("port/5000/api/paraphrase") ||
+      url.endsWith("/api/paraphrase")
+    ) {
+      url = API_BASE + "/paraphrase";
+    }
+
+    console.log(
+      "[AUDITOR UA] Solicitud:",
+      url
+    );
+
+    const response = await originalFetch(
+      url,
+      options
+    );
+
+    /*
+     * Evita nuevamente:
+     * Unexpected token '<'
+     */
+    const contentType =
+      response.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("application/json") &&
+      url.includes("auditor-ua-api")
+    ) {
+      const text = await response.text();
+
+      throw new Error(
+        "El servidor no devolvió JSON. " +
+        "HTTP " +
+        response.status +
+        ". Respuesta: " +
+        text.substring(0, 150)
+      );
+    }
+
+    return response;
   };
 
-  /**
-   * ==========================================================
-   * 4. INFORMACIÓN EN CONSOLA
-   * ==========================================================
-   */
-
   console.log(
-    "%cAUDITOR UA",
-    "font-size:18px;font-weight:bold;color:#087f5b;"
+    "AUDITOR UA configurado correctamente."
   );
 
   console.log(
-    "Universidad Autónoma del Perú"
+    "API:",
+    API_BASE
   );
-
-  console.log(
-    "Configuración cargada correctamente."
-  );
-
-  if (API_BASE) {
-    console.log(
-      "Backend conectado:",
-      API_BASE
-    );
-  } else {
-    console.log(
-      "Backend todavía no configurado. Modo interfaz."
-    );
-  }
 
 })();
