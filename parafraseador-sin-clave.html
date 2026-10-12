@@ -61,7 +61,7 @@ small{color:#637268}
 <main>
 <div class="eyebrow">Versión 4 · Edición académica y controles · Sin contraseña</div>
 <h1>Parafraseador UA V4 <span class="tag">Revisión supervisada</span></h1>
-<p>La revisión conservadora sigue disponible. El modo semántico con IA funciona únicamente cuando el proveedor esté configurado en Render y requiere consentimiento para enviar los párrafos seleccionados a Groq. Descarga Word y Excel de evidencias. No garantiza modificar la similitud de Turnitin.</p>
+<p>Nuevo modo editorial estructural sin Groq ni claves adicionales: reorganiza determinadas oraciones académicas de forma controlada, conserva el checklist de 11 protecciones y entrega Word y Excel para revisión. La IA generativa sigue siendo opcional y puede estar restringida por el proveedor. No garantiza reducir Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -73,10 +73,11 @@ small{color:#637268}
 <section class="mode-card" aria-labelledby="modeLabel">
 <label id="modeLabel" for="mode">Tipo de revisión académica</label>
 <select id="mode">
+<option value="editorial" selected>Editorial estructural · recomendado, sin Groq ni IA externa</option>
 <option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
 <option value="semantico" disabled>Semántico V4 · Groq (comprobando disponibilidad)</option>
 </select>
-<div id="modeState" class="mode-state" aria-live="polite">Comprobando si la IA semántica está configurada…</div>
+<div id="modeState" class="mode-state" aria-live="polite">Edición estructural disponible sin Groq. Aplica reglas verificables y revisión académica.</div>
 <div id="externalConsent" hidden>
 <div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
 <label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
@@ -134,7 +135,7 @@ small{color:#637268}
   function busy(value){$("start").disabled=value;$("check").disabled=value;$("word").disabled=value;$("intensity").disabled=value;$("mode").disabled=value;$("consent").disabled=value;}
   function errMsg(status,detail){
     const extra=detail && (typeof detail==="string"?detail:JSON.stringify(detail));
-    if(status===401||status===403)return "Clave API no autorizada (HTTP "+status+"). Verifica la clave de AutorIA en Render.";
+    if(status===401||status===403)return "Acceso denegado por el servidor (HTTP "+status+"). No envíes ni publiques claves; revisa el origen o permisos.";
     if(status===404)return "La ruta /v1/paraphrase todavía no está disponible en Render (404).";
     if(status===413)return "El documento excede el límite del servidor (HTTP 413).";
     if(status===429)return "Límite de capacidad o cuota de uso alcanzada (HTTP 429). "+(extra||"");
@@ -154,6 +155,11 @@ small{color:#637268}
     const semantic=$("mode").value==="semantico";
     $("externalConsent").hidden=!semantic;
     if(!semantic)$("consent").checked=false;
+    $("modeState").textContent=semantic ?
+      "Groq está configurado, pero la autorización real depende de la organización y el proyecto. Debes consentir el envío." :
+      $("mode").value==="editorial" ?
+      "Reorganiza complementos y finalidades sin enviar texto a Groq. No es un modelo generativo; verifica las propuestas en Excel." :
+      "Modo V3: sustituciones académicas conservadoras y revisión manual.";
   }
   $("mode").addEventListener("change",onMode);
   async function checkCapabilities(){
@@ -165,14 +171,11 @@ small{color:#637268}
       const option=$("mode").querySelector('option[value="semantico"]');
       option.disabled=!semanticReady;
       option.textContent=semanticReady?
-        "Semántico V4 · IA Groq (hasta 6 párrafos supervisados)":
+        "Semántico V4 · Groq configurado (permiso pendiente de verificar)":
         "Semántico V4 · IA no configurada en Render";
-      $("modeState").textContent=semanticReady?
-        "IA semántica disponible. Requiere autorización de envío y revisión posterior.":
-        "Solo está activo el modo conservador. Para habilitar la IA hay que configurar GROQ_API_KEY y V4_SEMANTIC_ENABLED=1 en Render. No necesitas ninguna clave de acceso aquí.";
       onMode();
     }catch(error){
-      $("modeState").textContent="No se pudo verificar el estado del proveedor: permanece disponible el modo conservador.";
+      $("modeState").textContent="La disponibilidad de Groq no se pudo verificar; los modos editorial y conservador siguen disponibles sin clave.";
     }
   }
   checkCapabilities();
@@ -205,7 +208,7 @@ small{color:#637268}
     const semantic=$("mode").value==="semantico";
     if(semantic && !semanticReady){state("La IA semántica no está configurada en Render. Utiliza modo conservador.","error");return;}
     if(semantic && !$("consent").checked){state("Debes autorizar explícitamente el procesamiento externo de los párrafos.","error");return;}
-    data.append("modo",semantic?"semantico":"conservador");
+    data.append("modo",semantic?"semantico":$("mode").value==="editorial"?"editorial":"conservador");
     data.append("consentimiento_ia",semantic?"si":"no");
     const configuration=Object.fromEntries(selections.map(box=>[box.value,box.checked]));
     const termList=$("terms").value.split(/[\r\n;]+/).map(x=>x.trim()).filter(Boolean);
@@ -216,7 +219,7 @@ small{color:#637268}
     data.append("protecciones",JSON.stringify(configuration));
     data.append("terminos_protegidos",JSON.stringify(termList));
     $("results").hidden=true;busy(true);
-    state(semantic?"Enviando hasta 6 párrafos elegibles para revisión semántica supervisada…":"Procesando Word en modo conservador y generando evidencias…");
+    state(semantic?"Enviando hasta 6 párrafos elegibles para revisión semántica supervisada…":$("mode").value==="editorial"?"Reorganizando redacción académica localmente y generando informe de integridad…":"Procesando Word en modo conservador y generando evidencias…");
     try{
       const response=await fetch(BASE+"/v1/paraphrase",{
         method:"POST",mode:"cors",credentials:"omit",
