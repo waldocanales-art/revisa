@@ -21,3 +21,41 @@ jobs:
           test -s index-CMfRaoDI.css
           grep -q 'v1/audit/' config.js
           grep -q 'X-API-Key' config.js
+
+      - name: Verify passwordless Parafraseador
+        run: |
+          test -s parafraseador-directo-20261012.html
+          grep -q '/v1/paraphrase' parafraseador-directo-20261012.html
+          if grep -Eq 'X-API-Key|id="password"|app.n8n.cloud' parafraseador-directo-20261012.html; then
+            echo "Parafraseador still contains old key or n8n route"
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.current=False
+                  self.items=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=="script":
+                      self.current=True
+                      self.items.append("")
+              def handle_endtag(self,tag):
+                  if tag=="script":
+                      self.current=False
+              def handle_data(self,data):
+                  if self.current:
+                      self.items[-1]+=data
+          reader=Scripts()
+          reader.feed(Path("parafraseador-directo-20261012.html").read_text())
+          assert reader.items
+          Path("/tmp/para-sin-clave.js").write_text(reader.items[0])
+          config=Path("config.js").read_text()
+          start=config.index("async function paraphraseViaRender(")
+          stop=config.index("async function callLegacyService(",start)
+          assert "accessKey()" not in config[start:stop]
+          assert '"X-API-Key": key' not in config[start:stop]
+          PY
+          node --check /tmp/para-sin-clave.js
