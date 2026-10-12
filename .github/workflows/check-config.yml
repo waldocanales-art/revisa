@@ -1,0 +1,23 @@
+name: Auditor UA connection checks
+on:
+  push:
+    branches: [reparacion-parafraseador-2026-10-12]
+  pull_request:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax of secure API connector
+        run: node --check config.js
+      - name: Validate expected historical assets
+        run: |
+          test -s index.html
+          test -s index-xY6Lk_ls.js
+          test -s index-CMfRaoDI.css
+          grep -q 'v1/audit/' config.js
+          grep -q 'X-API-Key' config.js
