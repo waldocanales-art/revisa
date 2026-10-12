@@ -21,6 +21,7 @@ a{color:#0d6847;font-weight:700}.fine{font-size:13px;color:#6d7672}
 <div class="row"><div><div class="name">1. Archivos de la interfaz</div><div class="note">Verifica que se publicó el conector actualizado de GitHub.</div></div><div id="ui" class="state">Pendiente</div></div>
 <div class="row"><div><div class="name">2. Motor AutorIA en Render</div><div class="note">Consulta <code>/health</code> sin credenciales para confirmar que el servicio responde y permite CORS.</div></div><div id="health" class="state">Pendiente</div></div>
 <div class="row"><div><div class="name">3. Seguridad y ruta de auditoría</div><div class="note">Hace una petición pequeña con clave deliberadamente inválida. Un HTTP 401 demuestra que la ruta existe y rechaza accesos no autorizados.</div></div><div id="route" class="state">Pendiente</div></div>
+<div class="row"><div><div class="name">4. Ruta segura del parafraseador</div><div class="note">Comprueba que Render reconoce <code>/v1/paraphrase</code> y rechaza la clave de prueba; no envía archivos reales.</div></div><div id="para" class="state">Pendiente</div></div>
 </section>
 <button type="button" id="run">Ejecutar diagnóstico</button>
 <p id="summary" aria-live="polite"></p>
@@ -34,7 +35,7 @@ function show(id,message,level){const el=document.getElementById(id);el.textCont
 async function check(){
   const button=document.getElementById("run");button.disabled=true;
   document.getElementById("summary").textContent="Comprobando rutas...";
-  for(const id of ["ui","health","route"])show(id,"Comprobando...","");
+  for(const id of ["ui","health","route","para"])show(id,"Comprobando...","");
   let passed=0;
   try{
     const r=await fetch("./config.js?check=20261012",{cache:"no-store"});
@@ -59,7 +60,19 @@ async function check(){
     if(r.status===401||r.status===403){show("route","Protegida · HTTP "+r.status,"ok");passed++}
     else show("route","Revisar seguridad · HTTP "+r.status,"bad");
   }catch(e){show("route","Error de conexión/CORS","bad")}
-  document.getElementById("summary").textContent=passed===3?"Las tres comprobaciones pasaron. Ahora prueba una auditoría con un Word pequeño y la clave API autorizada.":passed+" de 3 comprobaciones pasaron. Si aparece un error, comparte una captura de esta pantalla.";
+  try{
+    const form=new FormData();
+    form.append("documento",new Blob(["diagnostico"],{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}),"diagnostico.docx");
+    form.append("intensidad","media");
+    const r=await fetch(BASE+"/v1/paraphrase",{
+      method:"POST",mode:"cors",credentials:"omit",
+      headers:{"X-API-Key":"diagnostico-sin-clave-"+Math.random().toString(36).slice(2)},
+      body:form
+    });
+    if(r.status===401||r.status===403){show("para","Protegida · HTTP "+r.status,"ok");passed++}
+    else show("para","Revisar ruta · HTTP "+r.status,"bad");
+  }catch(e){show("para","Error de conexión/CORS","bad")}
+  document.getElementById("summary").textContent=passed===4?"Las cuatro comprobaciones pasaron. Ahora prueba una auditoría con un Word pequeño y la clave API autorizada.":passed+" de 4 comprobaciones pasaron. Si aparece un error, comparte una captura de esta pantalla.";
   button.disabled=false;
 }
 document.getElementById("run").addEventListener("click",check);
