@@ -38,6 +38,20 @@
   <body>
     <div id="root"></div>
 
+    <!-- El acceso Parafraseador abre el cliente nuevo sin dependencias n8n. -->
+    <script>
+      document.addEventListener("click", function(event) {
+        const target = event.target;
+        const button = target && target.closest && target.closest("button, [role='tab']");
+        if (!button) return;
+        const label = (button.textContent || "").trim().toLowerCase();
+        if (!label.includes("parafraseador")) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign("./parafraseador-directo-20261012.html");
+      }, true);
+    </script>
+
     <!-- Aplicación -->
     <script
       type="module"
