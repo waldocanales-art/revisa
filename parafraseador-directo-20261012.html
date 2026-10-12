@@ -51,8 +51,8 @@ small{color:#637268}
 <div class="grid">
 <div><label for="word">Documento Word (.docx)</label><input id="word" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required><div class="note">Máximo 10 MB; utiliza documentos de prueba sin datos sensibles para la primera comprobación.</div></div>
 <div><label for="intensity">Intensidad</label><select id="intensity"><option value="baja">Baja · sustituciones limitadas</option><option value="media" selected>Media · recomendada</option><option value="alta">Alta · más expresiones verificables</option></select></div>
-<div><label for="password">Clave API AutorIA</label><input id="password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required><div class="note">Se emplea solo para la petición actual. No se almacena en GitHub, cookies ni almacenamiento local.</div></div>
-<div><label>Motor conectado</label><div class="panel">AutorIA Render · /v1/paraphrase</div><div class="note">Sin llamadas a webhooks de n8n. Se requiere autorización de la API institucional.</div></div>
+<div><label>Acceso libre</label><div class="panel ok">Sin usuario y sin contraseña</div><div class="note">Límites automáticos de tamaño y uso para proteger el servicio institucional.</div></div>
+<div><label>Motor conectado</label><div class="panel">AutorIA Render · /v1/paraphrase</div><div class="note">Sin llamadas a n8n y sin solicitud de clave API.</div></div>
 </div>
 <div class="controls"><button id="start" type="submit">Parafrasear documento</button><button id="check" type="button" class="secondary">Verificar conexión</button></div>
 </form>
@@ -68,7 +68,7 @@ small{color:#637268}
 <section class="card">
 <div class="eyebrow">Información y límites</div>
 <p>El motor protege preliminares, tablas y referencias identificadas; las sustituciones pueden ser limitadas. Debes revisar el significado y la atribución de todas las ideas, especialmente textos académicos. El procesamiento ocurre en Render, no en tu navegador.</p>
-<small>Versión independiente de rescate 2026-10-12. Esta página no carga el antiguo config.js ni el paquete compilado de Auditor UA.</small>
+<small>Versión sin clave de acceso 2026-10-12. Esta página no carga el antiguo config.js ni el paquete compilado de Auditor UA.</small>
 </section>
 </main>
 <script>
@@ -102,7 +102,7 @@ small{color:#637268}
     try{
       const response=await fetch(BASE+"/health",{method:"GET",mode:"cors",cache:"no-store",credentials:"omit"});
       const data=await response.json();
-      if(response.ok&&data.ok===true)state("Motor disponible (HTTP 200). El procesamiento del Word requiere además una clave API válida.","ok");
+      if(response.ok&&data.ok===true)state("Motor disponible (HTTP 200). No necesitas clave para parafrasear un Word.","ok");
       else state("El motor respondió HTTP "+response.status+" sin confirmar disponibilidad.","error");
     }catch(e){state("No se pudo consultar Render. Revisa tu conexión y las cabeceras CORS. Detalle: "+String(e.message||e),"error");}
     finally{busy(false);}
@@ -112,18 +112,15 @@ small{color:#637268}
     const file=$("word").files[0];
     if(!file||!file.name.toLowerCase().endsWith(".docx")){state("Selecciona un archivo .docx válido.","error");return;}
     if(file.size>10*1024*1024){state("El límite para el Word es 10 MB.","error");return;}
-    const key=$("password").value.trim();
-    if(!key){state("Necesitas la clave API de AutorIA.","error");return;}
     const data=new FormData();
     data.append("documento",file,file.name);
     data.append("intensidad",$("intensity").value);
-    $("password").value="";
     $("results").hidden=true;busy(true);
     state("Word enviado a AutorIA Render. Procesando y generando los archivos...");
     try{
       const response=await fetch(BASE+"/v1/paraphrase",{
         method:"POST",mode:"cors",credentials:"omit",
-        headers:{"X-API-Key":key},body:data
+        body:data
       });
       const ct=(response.headers.get("content-type")||"").toLowerCase();
       if(!ct.includes("json")){state("El servicio respondió HTTP "+response.status+" sin JSON. Revisa la versión desplegada en Render.","error");return;}
