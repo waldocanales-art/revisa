@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="referrer" content="no-referrer">
-<title>Parafraseador UA · Acceso directo a AutorIA</title>
+<title>Parafraseador UA V4 · Editor académico</title>
 <style>
 :root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
 *{box-sizing:border-box}
@@ -28,6 +28,14 @@ button:disabled{cursor:not-allowed;opacity:.65}
 button.secondary{background:white;color:#176d52}
 .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}
 .note{font-size:13px;color:#637268}
+.mode-card{background:#f4f8f6;border:1px solid #cfdfd5;border-radius:12px;padding:16px;margin:18px 0}
+.mode-card select{max-width:540px}
+.mode-state{font-size:13px;margin-top:9px;font-weight:650;color:#53655b}
+.consent{display:flex;gap:11px;align-items:flex-start;margin:15px 0 0;font-size:14px;font-weight:500}
+.consent input{width:20px;height:20px;margin:2px 0 0;flex:0 0 20px;accent-color:#176d52}
+.privacy{background:#fffaf0;border:1px solid #e4d8bd;border-radius:10px;padding:12px 15px;font-size:13px;line-height:1.55;color:#685530;margin-top:9px}
+.tag{display:inline-block;background:#e1f2e8;border:1px solid #9bc0a7;padding:2px 9px;border-radius:10px;color:#125e40;font-size:12px;font-weight:750}
+
 .panel{border-radius:10px;padding:13px 15px;margin-top:15px;background:#f1f6f2;border:1px solid #cadbd0;white-space:pre-wrap}
 .panel.error{background:#fff5f5;border-color:#ebaaaa;color:#8b2020}
 .panel.ok{background:#f0f8f3;border-color:#8fc2a2;color:#146b47}
@@ -51,9 +59,9 @@ small{color:#637268}
 <body>
 <header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
 <main>
-<div class="eyebrow">Conexión directa con Render · Sin n8n</div>
-<h1>Parafraseador académico</h1>
-<p>Procesa documentos Word mediante reglas conservadoras y genera un archivo .docx y un reporte de cambios .xlsx. No sustituye la revisión del autor ni garantiza modificar el porcentaje de similitud.</p>
+<div class="eyebrow">Versión 4 · Edición académica y controles · Sin contraseña</div>
+<h1>Parafraseador UA V4 <span class="tag">Revisión supervisada</span></h1>
+<p>La revisión conservadora sigue disponible. El modo semántico con IA funciona únicamente cuando el proveedor esté configurado en Render y requiere consentimiento para enviar los párrafos seleccionados a Groq. Descarga Word y Excel de evidencias. No garantiza modificar la similitud de Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -62,6 +70,18 @@ small{color:#637268}
 <div><label>Acceso libre</label><div class="panel ok">Sin usuario y sin contraseña</div><div class="note">Límites automáticos de tamaño y uso para proteger el servicio institucional.</div></div>
 <div><label>Motor conectado</label><div class="panel">AutorIA Render · /v1/paraphrase</div><div class="note">Sin llamadas a n8n y sin solicitud de clave API.</div></div>
 </div>
+<section class="mode-card" aria-labelledby="modeLabel">
+<label id="modeLabel" for="mode">Tipo de revisión académica</label>
+<select id="mode">
+<option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
+<option value="semantico" disabled>Semántico V4 · Groq (comprobando disponibilidad)</option>
+</select>
+<div id="modeState" class="mode-state" aria-live="polite">Comprobando si la IA semántica está configurada…</div>
+<div id="externalConsent" hidden>
+<div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
+<label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
+</div>
+</section>
 <section class="card" style="box-shadow:none;margin:20px 0 4px;padding:20px" aria-labelledby="protectTitle">
 <div class="eyebrow">Control de integridad documental</div>
 <div class="control-header"><h2 id="protectTitle" class="protect-heading">Checklist de restricciones</h2>
@@ -98,8 +118,8 @@ small{color:#637268}
 </section>
 <section class="card">
 <div class="eyebrow">Información y límites</div>
-<p>El motor protege preliminares, tablas y referencias identificadas; las sustituciones pueden ser limitadas. Debes revisar el significado y la atribución de todas las ideas, especialmente textos académicos. El procesamiento ocurre en Render, no en tu navegador.</p>
-<small>Versión sin clave de acceso 2026-10-12. Esta página no carga el antiguo config.js ni el paquete compilado de Auditor UA.</small>
+<p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas; la redacción generada necesita verificación humana y no garantiza precisión, originalidad ni un porcentaje concreto de Turnitin.</p>
+<small>Versión V4 2026-10-12 · Acceso sin contraseña. Esta página no carga el antiguo config.js ni el paquete compilado de Auditor UA.</small>
 </section>
 </main>
 <script>
@@ -111,13 +131,14 @@ small{color:#637268}
     const notice=$("notice");notice.hidden=false;notice.textContent=message;
     notice.className="panel"+(level?" "+level:"");
   }
-  function busy(value){$("start").disabled=value;$("check").disabled=value;$("word").disabled=value;$("intensity").disabled=value;}
+  function busy(value){$("start").disabled=value;$("check").disabled=value;$("word").disabled=value;$("intensity").disabled=value;$("mode").disabled=value;$("consent").disabled=value;}
   function errMsg(status,detail){
     const extra=detail && (typeof detail==="string"?detail:JSON.stringify(detail));
     if(status===401||status===403)return "Clave API no autorizada (HTTP "+status+"). Verifica la clave de AutorIA en Render.";
     if(status===404)return "La ruta /v1/paraphrase todavía no está disponible en Render (404).";
     if(status===413)return "El documento excede el límite del servidor (HTTP 413).";
-    if(status===429)return "El motor está ocupado (HTTP 429). Reintenta cuando finalice la auditoría anterior.";
+    if(status===429)return "Límite de capacidad o cuota de uso alcanzada (HTTP 429). "+(extra||"");
+    if(status===503)return "El modo semántico requiere configuración del proveedor Groq en Render. Puedes usar el modo conservador.";
     if(status>=500)return "Error del servicio Render (HTTP "+status+"). "+(extra||"");
     return "El servicio respondió HTTP "+status+". "+(extra||"");
   }
@@ -128,6 +149,33 @@ small{color:#637268}
       return u.href;
     }catch(_){return null;}
   }
+  let semanticReady=false;
+  function onMode(){
+    const semantic=$("mode").value==="semantico";
+    $("externalConsent").hidden=!semantic;
+    if(!semantic)$("consent").checked=false;
+  }
+  $("mode").addEventListener("change",onMode);
+  async function checkCapabilities(){
+    try{
+      const response=await fetch(BASE+"/v1/paraphrase/capabilities",{mode:"cors",cache:"no-store",credentials:"omit"});
+      if(!response.ok)throw new Error("HTTP "+response.status);
+      const result=await response.json();
+      semanticReady=result.semantic_available===true;
+      const option=$("mode").querySelector('option[value="semantico"]');
+      option.disabled=!semanticReady;
+      option.textContent=semanticReady?
+        "Semántico V4 · IA Groq (hasta 6 párrafos supervisados)":
+        "Semántico V4 · IA no configurada en Render";
+      $("modeState").textContent=semanticReady?
+        "IA semántica disponible. Requiere autorización de envío y revisión posterior.":
+        "Solo está activo el modo conservador. Para habilitar la IA hay que configurar GROQ_API_KEY y V4_SEMANTIC_ENABLED=1 en Render. No necesitas ninguna clave de acceso aquí.";
+      onMode();
+    }catch(error){
+      $("modeState").textContent="No se pudo verificar el estado del proveedor: permanece disponible el modo conservador.";
+    }
+  }
+  checkCapabilities();
   const selections=[...document.querySelectorAll("[data-protect]")];
   function updateCount(){
     const active=selections.filter(c=>c.checked).length;
@@ -154,6 +202,11 @@ small{color:#637268}
     const data=new FormData();
     data.append("documento",file,file.name);
     data.append("intensidad",$("intensity").value);
+    const semantic=$("mode").value==="semantico";
+    if(semantic && !semanticReady){state("La IA semántica no está configurada en Render. Utiliza modo conservador.","error");return;}
+    if(semantic && !$("consent").checked){state("Debes autorizar explícitamente el procesamiento externo de los párrafos.","error");return;}
+    data.append("modo",semantic?"semantico":"conservador");
+    data.append("consentimiento_ia",semantic?"si":"no");
     const configuration=Object.fromEntries(selections.map(box=>[box.value,box.checked]));
     const termList=$("terms").value.split(/[\r\n;]+/).map(x=>x.trim()).filter(Boolean);
     if(termList.length>40 || termList.some(x=>x.length>100)){
@@ -163,7 +216,7 @@ small{color:#637268}
     data.append("protecciones",JSON.stringify(configuration));
     data.append("terminos_protegidos",JSON.stringify(termList));
     $("results").hidden=true;busy(true);
-    state("Word enviado a AutorIA Render. Procesando y generando los archivos...");
+    state(semantic?"Enviando hasta 6 párrafos elegibles para revisión semántica supervisada…":"Procesando Word en modo conservador y generando evidencias…");
     try{
       const response=await fetch(BASE+"/v1/paraphrase",{
         method:"POST",mode:"cors",credentials:"omit",

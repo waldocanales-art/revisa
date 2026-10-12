@@ -90,3 +90,40 @@ jobs:
           Path("/tmp/parafraseador-v3.js").write_text("\n".join(parser.source))
           PY
           node --check /tmp/parafraseador-v3.js
+
+      - name: Validate semantic V4 UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          content = Path("parafraseador-sin-clave.html").read_text()
+          for required in (
+              'value="semantico"', 'value="conservador"',
+              'id="externalConsent"', 'id="consent"',
+              'data.append("modo"', 'data.append("consentimiento_ia"',
+              '/v1/paraphrase/capabilities',
+          ):
+              assert required in content, required
+          assert 'id="password"' not in content
+          assert content.count('data-protect value=') == 11
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active=False
+                  self.parts=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag=="script":
+                      self.active=True
+                      self.parts.append("")
+              def handle_endtag(self, tag):
+                  if tag=="script":
+                      self.active=False
+              def handle_data(self, value):
+                  if self.active:
+                      self.parts[-1]+=value
+          parser=Scripts()
+          parser.feed(content)
+          assert parser.parts
+          Path("/tmp/parafraseador-v4.js").write_text("\n".join(parser.parts))
+          PY
+          node --check /tmp/parafraseador-v4.js
