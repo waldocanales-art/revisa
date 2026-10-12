@@ -2,6 +2,14 @@
 
 Paquete listo para publicar la interfaz **Auditor UA — Res. 088 · Res. 018 · Res. 023 · APA 7** con GitHub Pages.
 
+## Enrutamiento del frontend (versión 1.0.1 — corrección en revisión)
+
+El archivo `config.js` reconoce **rutas completas**, no coincidencias por prefijo, para evitar que `/api/audit-batch` se envíe accidentalmente a `/audit`. Conserva el cuerpo, método y encabezados cuando se utiliza un objeto `Request` y los parámetros de consulta en las URLs. No modifica el dominio del webhook ni la configuración de credenciales.
+
+**Pruebas:** `node --test tests/config-routing.test.cjs` (Node 22). Además, GitHub Actions debe ejecutar este comando al abrir un pull request.
+
+**Límite de la corrección:** el enrutamiento correcto no garantiza que cada subruta de n8n exista o que su backend de Render esté disponible. Comprobar por separado las cuatro rutas `audit`, `audit-batch`, `report` y `paraphrase` en el sistema publicado. Las reglas 018/088 residen en AutorIA; REVISA es una interfaz de acceso y no debe declararse auditor normativo independiente solo por su diseño.
+
 ## Publicación
 
 1. Cree un repositorio en GitHub, por ejemplo `auditor-ua`.
