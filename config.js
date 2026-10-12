@@ -7,7 +7,7 @@
   "use strict";
   const RENDER_BASE = "https://ua-auditor-018.onrender.com";
   const N8N_BASE = "https://autonoma-del-peru.app.n8n.cloud/webhook/auditor-ua-api";
-  const API_ENDPOINTS = new Set(["paraphrase", "audit-batch", "report"]);
+  const API_ENDPOINTS = new Set(["audit-batch", "report"]);
   let privateKey = null;
   let activePrompt = null;
   window.__AUDITOR_API_BASE__ = "";
@@ -17,7 +17,7 @@
     version: "fix-2026-10-12",
     apiBase: RENDER_BASE,
     auditEngine: "AutorIA-018-088",
-    paraphraseBase: N8N_BASE,
+    paraphraseBase: RENDER_BASE,
   };
   const rawFetch = window.fetch.bind(window);
 
@@ -161,6 +161,58 @@
     }));
   }
 
+  async function paraphraseViaRender(originalForm) {
+    const file = originalForm.get("file");
+    if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".docx")) {
+      return jsonResult({ ok: false, error: "Selecciona un archivo Word .docx válido." });
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return jsonResult({ ok: false, error: "El límite del parafraseador es 10 MB. Utiliza el Compresor." });
+    }
+    const intensidad = originalForm.get("intensidad");
+    if (!["baja", "media", "alta"].includes(intensidad)) {
+      return jsonResult({ ok: false, error: "La intensidad seleccionada no es válida." });
+    }
+
+    const key = await accessKey();
+    if (!key) return jsonResult({ ok: false, error: "Procesamiento cancelado. Se requiere la clave API de AutorIA." });
+    const payload = new FormData();
+    payload.append("documento", file, file.name);
+    payload.append("intensidad", intensidad);
+
+    let response;
+    try {
+      response = await rawFetch(RENDER_BASE + "/v1/paraphrase", {
+        method: "POST",
+        mode: "cors",
+        credentials: "omit",
+        headers: { "X-API-Key": key },
+        body: payload,
+      });
+    } catch (error) {
+      return jsonResult({
+        ok: false,
+        error: "No fue posible conectar el parafraseador con AutorIA Render. Verifica CORS y disponibilidad. " +
+          (error && error.message ? error.message : "Error de red."),
+      });
+    }
+    const type = (response.headers.get("Content-Type") || "").toLowerCase();
+    if (!type.includes("json")) {
+      return jsonResult({ ok: false, error: httpError(response.status) + " Render no devolvió JSON." });
+    }
+    let result;
+    try { result = await response.json(); }
+    catch (_) { return jsonResult({ ok: false, error: "Respuesta del motor inválida: JSON mal formado." }); }
+    if (!response.ok) {
+      const detail = result && (result.detail || result.error || result.message);
+      return jsonResult({ ok: false, error: httpError(response.status, detail) });
+    }
+    if (!result || result.ok !== true) {
+      return jsonResult({ ok: false, error: result && result.error ? result.error : "El motor no concluyó." });
+    }
+    return jsonResult(result);
+  }
+
   async function callLegacyService(route, resource, options) {
     const target = N8N_BASE + "/" + route;
     let response;
@@ -195,6 +247,12 @@
         return jsonResult({ ok: false, error: "Solicitud de auditoría inválida (se requiere Word en FormData)." });
       }
       return auditViaRender(options.body);
+    }
+    if (match[1] === "paraphrase") {
+      if (!options || !(options.body instanceof FormData)) {
+        return jsonResult({ ok: false, error: "Solicitud de parafraseo inválida (se requiere Word en FormData)." });
+      }
+      return paraphraseViaRender(options.body);
     }
     if (API_ENDPOINTS.has(match[1])) {
       return callLegacyService(match[1], resource, options);
