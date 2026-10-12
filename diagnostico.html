@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditor UA · Diagnóstico de conexión</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f7f8f7;color:#21362f;font:16px/1.55 system-ui,Arial,sans-serif}
+main{max-width:840px;margin:0 auto;padding:40px 18px}h1{font-size:clamp(25px,5vw,35px);margin-bottom:6px}p{color:#4e6259}
+section{background:white;border:1px solid #d9e5de;border-radius:15px;padding:23px;margin:20px 0;box-shadow:0 6px 20px #21362f0b}
+.row{display:flex;align-items:start;justify-content:space-between;gap:12px;padding:17px 0;border-bottom:1px solid #e5ebe7}
+.row:last-child{border:0}.name{font-weight:700}.note{font-size:13px;color:#66756f;max-width:590px}
+.state{white-space:nowrap;color:#656e69;font-weight:700;font-size:13px}.ok{color:#126c46}.bad{color:#a32727}.warn{color:#8f5a13}
+button{border:0;background:#116c4a;color:white;border-radius:9px;padding:13px 21px;font-weight:700;cursor:pointer}
+a{color:#0d6847;font-weight:700}.fine{font-size:13px;color:#6d7672}
+</style>
+</head>
+<body><main>
+<h1>Auditor UA · Diagnóstico</h1>
+<p>Comprueba la comunicación GitHub Pages → Render y la autorización de la API. No envía tesis ni utiliza tu clave real.</p>
+<section>
+<div class="row"><div><div class="name">1. Archivos de la interfaz</div><div class="note">Verifica que se publicó el conector actualizado de GitHub.</div></div><div id="ui" class="state">Pendiente</div></div>
+<div class="row"><div><div class="name">2. Motor AutorIA en Render</div><div class="note">Consulta <code>/health</code> sin credenciales para confirmar que el servicio responde y permite CORS.</div></div><div id="health" class="state">Pendiente</div></div>
+<div class="row"><div><div class="name">3. Seguridad y ruta de auditoría</div><div class="note">Hace una petición pequeña con clave deliberadamente inválida. Un HTTP 401 demuestra que la ruta existe y rechaza accesos no autorizados.</div></div><div id="route" class="state">Pendiente</div></div>
+</section>
+<button type="button" id="run">Ejecutar diagnóstico</button>
+<p id="summary" aria-live="polite"></p>
+<p class="fine">Este diagnóstico no ejecuta el procesamiento normativo ni garantiza los recursos de memoria para un Word real. Para auditorías usa archivos .docx de hasta 10 MB.</p>
+<a href="./">Volver a Auditor UA</a>
+</main>
+<script>
+"use strict";
+const BASE="https://ua-auditor-018.onrender.com";
+function show(id,message,level){const el=document.getElementById(id);el.textContent=message;el.className="state "+(level||"")}
+async function check(){
+  const button=document.getElementById("run");button.disabled=true;
+  document.getElementById("summary").textContent="Comprobando rutas...";
+  for(const id of ["ui","health","route"])show(id,"Comprobando...","");
+  let passed=0;
+  try{
+    const r=await fetch("./config.js?check=20261012",{cache:"no-store"});
+    const t=await r.text();
+    if(r.ok && t.includes("fix-2026-10-12") && t.includes("auditViaRender")){show("ui","Correcto","ok");passed++}
+    else show("ui","Versión anterior de la interfaz","bad");
+  }catch(e){show("ui","No disponible","bad")}
+  try{
+    const r=await fetch(BASE+"/health",{mode:"cors",cache:"no-store"});
+    const data=await r.json();
+    if(r.ok && data.ok===true){show("health","Correcto · HTTP 200","ok");passed++}
+    else show("health","Respuesta inesperada · HTTP "+r.status,"bad");
+  }catch(e){show("health","Error de red/CORS","bad")}
+  try{
+    const form=new FormData();
+    form.append("documento",new Blob(["prueba sin credenciales"],{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}),"diagnostico.docx");
+    const r=await fetch(BASE+"/v1/audit/018",{
+      method:"POST",mode:"cors",credentials:"omit",
+      headers:{"X-API-Key":"diagnostico-sin-clave-"+Math.random().toString(36).slice(2)},
+      body:form
+    });
+    if(r.status===401||r.status===403){show("route","Protegida · HTTP "+r.status,"ok");passed++}
+    else show("route","Revisar seguridad · HTTP "+r.status,"bad");
+  }catch(e){show("route","Error de conexión/CORS","bad")}
+  document.getElementById("summary").textContent=passed===3?"Las tres comprobaciones pasaron. Ahora prueba una auditoría con un Word pequeño y la clave API autorizada.":passed+" de 3 comprobaciones pasaron. Si aparece un error, comparte una captura de esta pantalla.";
+  button.disabled=false;
+}
+document.getElementById("run").addEventListener("click",check);
+</script></body></html>
