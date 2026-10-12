@@ -1,117 +1,204 @@
 /**
- * ============================================================
- * AUDITOR UA
- * Universidad Autónoma del Perú
- *
- * Frontend: GitHub Pages
- * Backend seguro: n8n → Render AutorIA
- * ============================================================
+ * Auditor UA - conexión segura con AutorIA Render.
+ * 2026-10-12: adapta el cliente histórico a la API vigente.
+ * Claves en memoria de esta pestaña exclusivamente; nunca se guardan.
  */
-
 (function () {
   "use strict";
-
-  const API_BASE =
-    "https://autonoma-del-peru.app.n8n.cloud/webhook/auditor-ua-api";
-
+  const RENDER_BASE = "https://ua-auditor-018.onrender.com";
+  const N8N_BASE = "https://autonoma-del-peru.app.n8n.cloud/webhook/auditor-ua-api";
+  const API_ENDPOINTS = new Set(["paraphrase", "audit-batch", "report"]);
+  let privateKey = null;
+  let activePrompt = null;
+  window.__AUDITOR_API_BASE__ = "";
   window.AUDITOR_UA_CONFIG = {
     appName: "Auditor UA",
     institution: "Universidad Autónoma del Perú",
-    apiBase: API_BASE,
-    version: "1.0.0"
+    version: "fix-2026-10-12",
+    apiBase: RENDER_BASE,
+    auditEngine: "AutorIA-018-088",
+    paraphraseBase: N8N_BASE,
   };
+  const rawFetch = window.fetch.bind(window);
 
-  const originalFetch = window.fetch.bind(window);
+  function accessKey() {
+    if (privateKey) return Promise.resolve(privateKey);
+    if (activePrompt) return activePrompt;
+    activePrompt = new Promise((resolve) => {
+      const shade = document.createElement("div");
+      shade.setAttribute("role", "presentation");
+      shade.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px";
+      const panel = document.createElement("form");
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-modal", "true");
+      panel.setAttribute("aria-label", "Acceso seguro a AutorIA");
+      panel.style.cssText = "width:100%;max-width:420px;padding:24px;border-radius:16px;background:#fff;color:#242424;box-shadow:0 20px 60px #0003;font-family:system-ui,Arial";
+      const title = document.createElement("h2");
+      title.textContent = "Acceso seguro al motor AutorIA";
+      title.style.cssText = "font-weight:700;font-size:19px;margin:0 0 12px";
+      const description = document.createElement("p");
+      description.textContent = "Ingresa la clave API de auditoría configurada en Render. Se utiliza únicamente durante esta sesión y nunca se guarda en GitHub ni en el navegador.";
+      description.style.cssText = "font-size:14px;line-height:1.55;margin:0 0 16px";
+      const input = document.createElement("input");
+      input.type = "password";
+      input.required = true;
+      input.autocomplete = "off";
+      input.placeholder = "Clave API de auditoría";
+      input.setAttribute("aria-label", "Clave API de auditoría");
+      input.style.cssText = "width:100%;padding:12px;border:1px solid #ccc;border-radius:9px;margin-bottom:14px;box-sizing:border-box";
+      const actions = document.createElement("div");
+      actions.style.cssText = "display:flex;gap:12px";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.textContent = "Cancelar";
+      cancel.style.cssText = "flex:1;padding:11px;background:#eee;border:0;border-radius:8px;cursor:pointer";
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.textContent = "Conectar";
+      submit.style.cssText = "flex:1;padding:11px;background:#147453;color:white;border:0;border-radius:8px;cursor:pointer";
+      actions.append(cancel, submit);
+      panel.append(title, description, input, actions);
+      shade.append(panel);
+      document.body.append(shade);
+      const done = (value) => {
+        shade.remove();
+        activePrompt = null;
+        resolve(value);
+      };
+      cancel.addEventListener("click", () => done(null));
+      panel.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const value = input.value.trim();
+        input.value = "";
+        if (!value) return;
+        privateKey = value;
+        done(value);
+      });
+      input.focus();
+    });
+    return activePrompt;
+  }
 
-  window.fetch = async function (resource, options = {}) {
+  function jsonResult(data) {
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
 
-    let url =
-      typeof resource === "string"
-        ? resource
-        : resource.url;
-
-    /*
-     * AUDITOR INDIVIDUAL
-     */
-    if (
-      url.includes("port/5000/api/audit") ||
-      url.endsWith("/api/audit")
-    ) {
-      url = API_BASE + "/audit";
+  function httpError(status, detail) {
+    const suffix = detail ? " " + String(detail).slice(0, 240) : "";
+    if (status === 401 || status === 403) {
+      privateKey = null;
+      return "Clave API incorrecta o sin autorización (HTTP " + status + "). Vuelve a seleccionar el archivo para introducirla de nuevo.";
     }
+    if (status === 413) return "Documento demasiado grande (HTTP 413). Comprímelo con la pestaña Compresor.";
+    if (status === 429) return "El motor está procesando otra auditoría. Reintenta al terminar (HTTP 429).";
+    if (status === 404) return "Ruta de API no encontrada (HTTP 404). Verifica el despliegue de AutorIA.";
+    if (status >= 500) return "El servidor AutorIA falló o agotó sus recursos (HTTP " + status + ")." + suffix;
+    return "No se pudo completar la solicitud (HTTP " + status + ")." + suffix;
+  }
 
-    /*
-     * INFORMES
-     */
-    else if (
-      url.includes("port/5000/api/report") ||
-      url.endsWith("/api/report")
-    ) {
-      url = API_BASE + "/report";
+  async function auditViaRender(originalForm) {
+    const file = originalForm.get("file");
+    if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".docx")) {
+      return jsonResult({ ok: false, error: "Selecciona un documento Word .docx válido." });
     }
-
-    /*
-     * AUDITORÍA POR LOTE
-     */
-    else if (
-      url.includes("port/5000/api/audit-batch") ||
-      url.endsWith("/api/audit-batch")
-    ) {
-      url = API_BASE + "/audit-batch";
+    // Límite preventivo de la interfaz, para instancia de 512 MiB.
+    if (file.size > 10 * 1024 * 1024) {
+      return jsonResult({ ok: false, error: "Este motor admite por ahora archivos de hasta 10 MB para reducir fallos de memoria. Utiliza la pestaña Compresor." });
     }
-
-    /*
-     * PARAFRASEADOR
-     */
-    else if (
-      url.includes("port/5000/api/paraphrase") ||
-      url.endsWith("/api/paraphrase")
-    ) {
-      url = API_BASE + "/paraphrase";
+    const norma = originalForm.get("norma") === "018" ? "018" : "088";
+    const token = await accessKey();
+    if (!token) return jsonResult({ ok: false, error: "Auditoría cancelada. Debes ingresar la clave API de AutorIA." });
+    const payload = new FormData();
+    payload.append("documento", file, file.name);
+    payload.append("guia", norma === "018" ? "018-2024-VRI-UA" : "088-2023-VRI-UA");
+    payload.append("guia_estilo", "023-2024-VRI-UA");
+    payload.append("caso", file.name);
+    payload.append("enfoque", "");
+    const address = RENDER_BASE + "/v1/audit/" + norma;
+    let response;
+    try {
+      response = await rawFetch(address, {
+        method: "POST",
+        mode: "cors",
+        credentials: "omit",
+        headers: { "X-API-Key": token },
+        body: payload,
+      });
+    } catch (error) {
+      return jsonResult({
+        ok: false,
+        error: "No se pudo conectar con AutorIA en Render. Comprueba el estado del servidor y la configuración CORS. " +
+          (error && error.message ? error.message : "Error de red."),
+      });
     }
-
-    console.log(
-      "[AUDITOR UA] Solicitud:",
-      url
-    );
-
-    const response = await originalFetch(
-      url,
-      options
-    );
-
-    /*
-     * Evita nuevamente:
-     * Unexpected token '<'
-     */
-    const contentType =
-      response.headers.get("content-type") || "";
-
-    if (
-      !contentType.includes("application/json") &&
-      url.includes("auditor-ua-api")
-    ) {
-      const text = await response.text();
-
-      throw new Error(
-        "El servidor no devolvió JSON. " +
-        "HTTP " +
-        response.status +
-        ". Respuesta: " +
-        text.substring(0, 150)
-      );
+    const contentType = response.headers.get("Content-Type") || "";
+    if (!contentType.toLowerCase().includes("json")) {
+      return jsonResult({ ok: false, error: httpError(response.status) + " La respuesta no fue JSON." });
     }
+    let data;
+    try { data = await response.json(); }
+    catch (_) { return jsonResult({ ok: false, error: "Render devolvió un JSON inválido." }); }
+    if (!response.ok) {
+      const detail = data && (data.error || data.detail || data.message);
+      return jsonResult({ ok: false, error: httpError(response.status, detail) });
+    }
+    if (!data || data.ok !== true) {
+      return jsonResult({ ok: false, error: data && data.error ? data.error : "La auditoría no terminó correctamente en Render." });
+    }
+    const docxUrl = data.files && data.files.corrected_docx && data.files.corrected_docx.url;
+    const xlsxUrl = data.files && data.files.audit_xlsx && data.files.audit_xlsx.url;
+    if (!docxUrl || !xlsxUrl) {
+      return jsonResult({ ok: false, error: "La auditoría finalizó pero faltan los enlaces a los archivos corregidos." });
+    }
+    return jsonResult(Object.assign({}, data, {
+      originalName: file.name,
+      norma: norma,
+      docxUrl: docxUrl,
+      xlsxUrl: xlsxUrl,
+    }));
+  }
 
+  async function callLegacyService(route, resource, options) {
+    const target = N8N_BASE + "/" + route;
+    let response;
+    try { response = await rawFetch(target, options); }
+    catch (error) {
+      throw new Error("No se pudo conectar con n8n (" + route + "). Verifica el webhook activo, CORS y el motor vinculado. " +
+        (error && error.message ? error.message : "Error de red."));
+    }
+    const type = (response.headers.get("Content-Type") || "").toLowerCase();
+    if (!type.includes("json")) {
+      throw new Error("n8n (" + route + ") devolvió HTTP " + response.status + " y un tipo " +
+        (type || "desconocido") + " en vez de JSON. Verifica la ruta de producción del webhook.");
+    }
+    if (!response.ok) {
+      const data = await response.clone().json().catch(() => ({}));
+      throw new Error(httpError(response.status, data.error || data.message || data.detail));
+    }
     return response;
+  }
+
+  window.fetch = async function (resource, options) {
+    const address = typeof resource === "string" ? resource :
+      resource instanceof URL ? resource.href : resource && resource.url;
+    if (!address) return rawFetch(resource, options);
+    let parsed;
+    try { parsed = new URL(address, window.location.href); }
+    catch (_) { return rawFetch(resource, options); }
+    const match = parsed.pathname.match(/\/api\/(audit-batch|audit|paraphrase|report)\/?$/);
+    if (!match) return rawFetch(resource, options);
+    if (match[1] === "audit") {
+      if (!options || !(options.body instanceof FormData)) {
+        return jsonResult({ ok: false, error: "Solicitud de auditoría inválida (se requiere Word en FormData)." });
+      }
+      return auditViaRender(options.body);
+    }
+    if (API_ENDPOINTS.has(match[1])) {
+      return callLegacyService(match[1], resource, options);
+    }
+    return rawFetch(resource, options);
   };
-
-  console.log(
-    "AUDITOR UA configurado correctamente."
-  );
-
-  console.log(
-    "API:",
-    API_BASE
-  );
-
 })();
