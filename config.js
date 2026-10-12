@@ -174,8 +174,6 @@
       return jsonResult({ ok: false, error: "La intensidad seleccionada no es válida." });
     }
 
-    const key = await accessKey();
-    if (!key) return jsonResult({ ok: false, error: "Procesamiento cancelado. Se requiere la clave API de AutorIA." });
     const payload = new FormData();
     payload.append("documento", file, file.name);
     payload.append("intensidad", intensidad);
@@ -186,7 +184,6 @@
         method: "POST",
         mode: "cors",
         credentials: "omit",
-        headers: { "X-API-Key": key },
         body: payload,
       });
     } catch (error) {
