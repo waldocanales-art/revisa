@@ -21,3 +21,36 @@ jobs:
           test -s index-CMfRaoDI.css
           grep -q 'v1/audit/' config.js
           grep -q 'X-API-Key' config.js
+
+      - name: Verify independent Parafraseador entrypoint
+        run: |
+          test -s parafraseador-directo-20261012.html
+          grep -q '/v1/paraphrase' parafraseador-directo-20261012.html
+          if grep -q 'app.n8n.cloud' parafraseador-directo-20261012.html; then
+            echo "Unexpected n8n dependency in direct page"
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class ScriptReader(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.current = False
+                  self.scripts = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'script':
+                      self.current = True
+                      self.scripts.append('')
+              def handle_endtag(self, tag):
+                  if tag == 'script':
+                      self.current = False
+              def handle_data(self, data):
+                  if self.current:
+                      self.scripts[-1] += data
+          r = ScriptReader()
+          r.feed(Path('parafraseador-directo-20261012.html').read_text())
+          assert r.scripts and len(r.scripts[0]) > 100
+          Path('/tmp/parafraseador-directo.js').write_text(r.scripts[0])
+          PY
+          node --check /tmp/parafraseador-directo.js
