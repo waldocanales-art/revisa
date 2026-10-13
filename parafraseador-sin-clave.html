@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="referrer" content="no-referrer">
-<title>Parafraseador UA V4 · Editor académico</title>
+<title>Parafraseador UA V5 · Cobertura integral</title>
 <style>
 :root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
 *{box-sizing:border-box}
@@ -35,6 +35,12 @@ button.secondary{background:white;color:#176d52}
 .consent input{width:20px;height:20px;margin:2px 0 0;flex:0 0 20px;accent-color:#176d52}
 .privacy{background:#fffaf0;border:1px solid #e4d8bd;border-radius:10px;padding:12px 15px;font-size:13px;line-height:1.55;color:#685530;margin-top:9px}
 .tag{display:inline-block;background:#e1f2e8;border:1px solid #9bc0a7;padding:2px 9px;border-radius:10px;color:#125e40;font-size:12px;font-weight:750}
+.coverage-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.coverage-tile{background:#f4f8f6;border:1px solid #d2e4d8;border-radius:12px;padding:15px 12px;min-width:0}
+.coverage-tile .number{display:block;color:#176d52;font-weight:800;font-size:clamp(20px,2.5vw,29px);font-variant-numeric:tabular-nums}
+.coverage-tile .name{display:block;font-size:12px;color:#506459;line-height:1.4;margin-top:3px}
+@media(max-width:680px){.coverage-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 
 .panel{border-radius:10px;padding:13px 15px;margin-top:15px;background:#f1f6f2;border:1px solid #cadbd0;white-space:pre-wrap}
 .panel.error{background:#fff5f5;border-color:#ebaaaa;color:#8b2020}
@@ -59,9 +65,9 @@ small{color:#637268}
 <body>
 <header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
 <main>
-<div class="eyebrow">Versión 4 · Edición académica y controles · Sin contraseña</div>
-<h1>Parafraseador UA V4 <span class="tag">Revisión supervisada</span></h1>
-<p>Nuevo modo editorial estructural sin Groq ni claves adicionales: reorganiza determinadas oraciones académicas de forma controlada, conserva el checklist de 11 protecciones y entrega Word y Excel para revisión. La IA generativa sigue siendo opcional y puede estar restringida por el proveedor. No garantiza reducir Turnitin.</p>
+<div class="eyebrow">Versión 5 · Cobertura integral y edición académica · Sin contraseña</div>
+<h1>Parafraseador UA V5 <span class="tag">Cobertura integral</span></h1>
+<p>La V5 estudia <strong>todos los párrafos accesibles del Word</strong> (hasta 10 000 entradas por documento), incluidos capítulos, referencias y tablas protegidas. Distingue los párrafos <strong>analizados</strong> de los <strong>modificados</strong>. El modo editorial sin Groq reorganiza solo algunas expresiones cuando puede hacerlo sin comprometer el texto; el Excel identifica qué revisar manualmente. No garantiza disminuir Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -77,7 +83,7 @@ small{color:#637268}
 <option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
 <option value="semantico" disabled>Semántico V4 · Groq (comprobando disponibilidad)</option>
 </select>
-<div id="modeState" class="mode-state" aria-live="polite">Edición estructural disponible sin Groq. Aplica reglas verificables y revisión académica.</div>
+<div id="modeState" class="mode-state" aria-live="polite">Cobertura V5 completa disponible sin Groq. Solo se reformulan las estructuras compatibles.</div>
 <div id="externalConsent" hidden>
 <div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
 <label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
@@ -115,12 +121,20 @@ small{color:#637268}
 <h2 id="resultTitle">Parafraseo completado</h2>
 <p id="warning"></p>
 <div class="links"><a id="downloadDocx" href="#" target="_blank" rel="noopener noreferrer">Descargar Word</a><a id="downloadXlsx" href="#" target="_blank" rel="noopener noreferrer">Descargar reporte Excel</a></div>
+<h3>Cobertura real del documento</h3>
+<div class="coverage-summary" id="coverageSummary" aria-live="polite" hidden>
+<div class="coverage-tile"><span class="number" id="coverReviewed">—</span><span class="name">Párrafos del cuerpo revisados</span></div>
+<div class="coverage-tile"><span class="number" id="coverChanged">—</span><span class="name">Párrafos del cuerpo modificados</span></div>
+<div class="coverage-tile"><span class="number" id="coverUnchanged">—</span><span class="name">Párrafos sin cambio</span></div>
+<div class="coverage-tile"><span class="number" id="coverProtected">—</span><span class="name">Párrafos protegidos inspeccionados</span></div>
+</div>
+<p class="note">El análisis puede cubrir la totalidad del texto accesible, aunque el motor solo transformará las construcciones que superen sus reglas de integridad. Para detalle por párrafo y capítulo descarga el Excel: hojas <strong>Cobertura integral</strong> y <strong>Cobertura por secciones</strong>.</p>
 <h3>Indicadores y control de integridad</h3><table><tbody id="metrics"></tbody></table>
 </section>
 <section class="card">
 <div class="eyebrow">Información y límites</div>
 <p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas; la redacción generada necesita verificación humana y no garantiza precisión, originalidad ni un porcentaje concreto de Turnitin.</p>
-<small>Versión V4 2026-10-12 · Acceso sin contraseña. Esta página no carga el antiguo config.js ni el paquete compilado de Auditor UA.</small>
+<small>Versión V5 2026-10-12 · Sin contraseña. La matriz cubre párrafos accesibles mediante python-docx; cuadros flotantes, imágenes y contenido incrustado requieren revisión visual.</small>
 </section>
 </main>
 <script>
@@ -219,7 +233,7 @@ small{color:#637268}
     data.append("protecciones",JSON.stringify(configuration));
     data.append("terminos_protegidos",JSON.stringify(termList));
     $("results").hidden=true;busy(true);
-    state(semantic?"Enviando hasta 6 párrafos elegibles para revisión semántica supervisada…":$("mode").value==="editorial"?"Reorganizando redacción académica localmente y generando informe de integridad…":"Procesando Word en modo conservador y generando evidencias…");
+    state(semantic?"Preparando informe integral y enviando hasta 6 párrafos elegibles a Groq…":$("mode").value==="editorial"?"Analizando el Word completo, preparando propuestas seguras y matriz por capítulos…":"Revisando integralmente el Word con el motor conservador…");
     try{
       const response=await fetch(BASE+"/v1/paraphrase",{
         method:"POST",mode:"cors",credentials:"omit",
@@ -238,6 +252,17 @@ small{color:#637268}
       $("warning").textContent=json.advertencia||"Revisa los cambios, las citas y la atribución de fuentes manualmente antes de utilizar el documento.";
       const tbody=$("metrics");tbody.replaceChildren();
       const resumen=json.resumen||{};
+      const coverMap=[
+        ["coverReviewed","V5 · Párrafos de cuerpo revisados"],
+        ["coverChanged","V5 · Párrafos de cuerpo con cambios"],
+        ["coverUnchanged","V5 · Párrafos de cuerpo sin cambios"],
+        ["coverProtected","V5 · Párrafos protegidos inspeccionados"]
+      ];
+      const coverageReady=coverMap.every(([id,key])=>Number.isFinite(Number(resumen[key])));
+      $("coverageSummary").hidden=!coverageReady;
+      if(coverageReady){
+        for(const [id,key] of coverMap){$(id).textContent=Number(resumen[key]).toLocaleString("es-PE");}
+      }
       for(const [name,value] of Object.entries(resumen)){
         const tr=document.createElement("tr");
         const th=document.createElement("th");th.scope="row";th.textContent=name;
