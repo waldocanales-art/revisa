@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta name="referrer" content="no-referrer">
+<title>Parafraseador UA V6 · Calidad y cobertura integral</title>
+<style>
+:root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
+*{box-sizing:border-box}
+body{margin:0;background:#f6f8f6;color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+header{border-bottom:1px solid var(--border);background:white}
+.header{max-width:1000px;margin:auto;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.logo{font-size:18px;font-weight:750;color:var(--green)}
+header a{color:var(--green);text-decoration:none}
+main{max-width:950px;margin:35px auto;padding:0 19px 50px}
+h1{font-size:clamp(25px,4vw,37px);line-height:1.2;margin:0 0 8px}
+p{color:var(--muted);margin:5px 0 15px}
+.card{background:white;border:1px solid var(--border);border-radius:16px;padding:25px;box-shadow:0 8px 28px #1b4d3010;margin:18px 0}
+.eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:12px;font-weight:750;color:var(--green);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
+input,select{font:inherit;padding:12px;border:1px solid #b7c9be;border-radius:10px;width:100%;background:white}
+input:focus,select:focus,button:focus-visible{outline:3px solid #9fd1b8;outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid #176d52;background:#176d52;color:white;padding:12px 17px;font-weight:700}
+button:disabled{cursor:not-allowed;opacity:.65}
+button.secondary{background:white;color:#176d52}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}
+.note{font-size:13px;color:#637268}
+.mode-card{background:#f4f8f6;border:1px solid #cfdfd5;border-radius:12px;padding:16px;margin:18px 0}
+.mode-card select{max-width:540px}
+.mode-state{font-size:13px;margin-top:9px;font-weight:650;color:#53655b}
+.consent{display:flex;gap:11px;align-items:flex-start;margin:15px 0 0;font-size:14px;font-weight:500}
+.consent input{width:20px;height:20px;margin:2px 0 0;flex:0 0 20px;accent-color:#176d52}
+.privacy{background:#fffaf0;border:1px solid #e4d8bd;border-radius:10px;padding:12px 15px;font-size:13px;line-height:1.55;color:#685530;margin-top:9px}
+.tag{display:inline-block;background:#e1f2e8;border:1px solid #9bc0a7;padding:2px 9px;border-radius:10px;color:#125e40;font-size:12px;font-weight:750}
+.coverage-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.coverage-tile{background:#f4f8f6;border:1px solid #d2e4d8;border-radius:12px;padding:15px 12px;min-width:0}
+.coverage-tile .number{display:block;color:#176d52;font-weight:800;font-size:clamp(20px,2.5vw,29px);font-variant-numeric:tabular-nums}
+.coverage-tile .name{display:block;font-size:12px;color:#506459;line-height:1.4;margin-top:3px}
+@media(max-width:680px){.coverage-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+.panel{border-radius:10px;padding:13px 15px;margin-top:15px;background:#f1f6f2;border:1px solid #cadbd0;white-space:pre-wrap}
+.panel.error{background:#fff5f5;border-color:#ebaaaa;color:#8b2020}
+.panel.ok{background:#f0f8f3;border-color:#8fc2a2;color:#146b47}
+[hidden]{display:none !important}
+table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid var(--border);font-size:14px;overflow-wrap:anywhere}
+th{color:#456255;width:55%}
+.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.protect-heading{font-size:19px;font-weight:750;margin:0 0 7px}
+.protection-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px;margin-top:16px}
+.protection-grid label{font-weight:500;margin:0;display:flex;align-items:flex-start;gap:10px;line-height:1.4;cursor:pointer}
+.protection-grid input[type=checkbox]{flex:0 0 18px;height:18px;width:18px;margin-top:2px;accent-color:#176d52}
+textarea{font:inherit;padding:12px;border:1px solid #b7c9be;border-radius:10px;width:100%;min-height:85px;resize:vertical}
+.control-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.control-header button{padding:8px 11px;font-size:13px}
+@media(max-width:680px){.protection-grid{grid-template-columns:1fr}}
+.links a{padding:12px 16px;background:#176d52;color:white;border-radius:9px;text-decoration:none;font-weight:700}
+small{color:#637268}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.header{flex-direction:column;align-items:flex-start}.card{padding:17px}}
+</style>
+</head>
+<body>
+<header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
+<main>
+<div class="eyebrow">Versión 6 · Calidad de escritura y cobertura integral · Sin contraseña</div>
+<h1>Parafraseador UA V6 <span class="tag">Auditoría editorial</span></h1>
+<p>La V6 estudia los <strong>párrafos accesibles de toda la tesis</strong> (hasta 10 000 entradas por archivo). Además del análisis y las modificaciones, identifica <strong>reiteraciones, oraciones extensas, posibles problemas de atribución y alertas sobre datos o citas modificadas</strong>. Conserva las 11 protecciones y ofrece propuestas manuales para texto con negrita o cursiva. No equivale a una evaluación semántica ni garantiza reducir Turnitin.</p>
+<section class="card">
+<form id="form">
+<div class="grid">
+<div><label for="word">Documento Word (.docx)</label><input id="word" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required><div class="note">Máximo 10 MB; utiliza documentos de prueba sin datos sensibles para la primera comprobación.</div></div>
+<div><label for="intensity">Intensidad</label><select id="intensity"><option value="baja">Baja · sustituciones limitadas</option><option value="media" selected>Media · recomendada</option><option value="alta">Alta · más expresiones verificables</option></select></div>
+<div><label>Acceso libre</label><div class="panel ok">Sin usuario y sin contraseña</div><div class="note">Límites automáticos de tamaño y uso para proteger el servicio institucional.</div></div>
+<div><label>Motor conectado</label><div class="panel">AutorIA Render · /v1/paraphrase</div><div class="note">Sin llamadas a n8n y sin solicitud de clave API.</div></div>
+</div>
+<section class="mode-card" aria-labelledby="modeLabel">
+<label id="modeLabel" for="mode">Tipo de revisión académica</label>
+<select id="mode">
+<option value="editorial" selected>Editorial estructural · recomendado, sin Groq ni IA externa</option>
+<option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
+<option value="semantico" disabled>Semántico V4 · Groq (comprobando disponibilidad)</option>
+</select>
+<div id="modeState" class="mode-state" aria-live="polite">Cobertura V5 completa disponible sin Groq. Solo se reformulan las estructuras compatibles.</div>
+<div id="externalConsent" hidden>
+<div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
+<label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
+</div>
+</section>
+<section class="card" style="box-shadow:none;margin:20px 0 4px;padding:20px" aria-labelledby="protectTitle">
+<div class="eyebrow">Control de integridad documental</div>
+<div class="control-header"><h2 id="protectTitle" class="protect-heading">Checklist de restricciones</h2>
+<button class="secondary" type="button" id="selectAll">Proteger todo</button></div>
+<p>Las casillas seleccionadas se envían al motor y se aplican al archivo Word. Las referencias, datos y citas deben revisarse igualmente después del procesamiento; la identificación automática tiene límites.</p>
+<div id="protectCount" class="note" aria-live="polite">11 de 11 categorías protegidas</div>
+<div class="protection-grid">
+<label><input type="checkbox" data-protect value="quotes" checked> Citas textuales y entre comillas</label>
+<label><input type="checkbox" data-protect value="citations" checked> Citas APA 7: autores y años</label>
+<label><input type="checkbox" data-protect value="references" checked> Referencias bibliográficas</label>
+<label><input type="checkbox" data-protect value="names" checked> Nombres propios e instituciones</label>
+<label><input type="checkbox" data-protect value="numbers" checked> Cifras, porcentajes y resultados estadísticos</label>
+<label><input type="checkbox" data-protect value="visuals" checked> Tablas, figuras y sus títulos</label>
+<label><input type="checkbox" data-protect value="technical" checked> Siglas, acrónimos y términos técnicos</label>
+<label><input type="checkbox" data-protect value="headings" checked> Títulos, subtítulos y estructura de capítulos</label>
+<label><input type="checkbox" data-protect value="equations" checked> Fórmulas matemáticas y ecuaciones</label>
+<label><input type="checkbox" data-protect value="preliminaries" checked> Carátula, dedicatoria, agradecimientos y anexos</label>
+<label><input type="checkbox" data-protect value="identifiers" checked> DOI, URL, ORCID y códigos de identificación</label>
+</div>
+<label for="terms" style="margin-top:19px">Términos específicos que no deben alterarse</label>
+<textarea id="terms" placeholder="Una palabra, nombre, institución o frase por línea. Hasta 40 términos."></textarea>
+<div class="note">No se almacenan preferencias ni documentos en este navegador. Los controles se verifican parcialmente por coincidencias y por estructura, y las discrepancias detectadas se revierten.</div>
+</section>
+<div class="controls"><button id="start" type="submit">Parafrasear documento</button><button id="check" type="button" class="secondary">Verificar conexión</button></div>
+</form>
+<div id="notice" role="status" aria-live="polite" class="panel" hidden></div>
+</section>
+<section class="card" id="results" hidden>
+<div class="eyebrow">Resultado de AutorIA</div>
+<h2 id="resultTitle">Parafraseo completado</h2>
+<p id="warning"></p>
+<div class="links"><a id="downloadDocx" href="#" target="_blank" rel="noopener noreferrer">Descargar Word</a><a id="downloadXlsx" href="#" target="_blank" rel="noopener noreferrer">Descargar reporte Excel</a></div>
+<h3>Cobertura real del documento</h3>
+<div class="coverage-summary" id="coverageSummary" aria-live="polite" hidden>
+<div class="coverage-tile"><span class="number" id="coverReviewed">—</span><span class="name">Párrafos del cuerpo revisados</span></div>
+<div class="coverage-tile"><span class="number" id="coverChanged">—</span><span class="name">Párrafos del cuerpo modificados</span></div>
+<div class="coverage-tile"><span class="number" id="coverUnchanged">—</span><span class="name">Párrafos sin cambio</span></div>
+<div class="coverage-tile"><span class="number" id="coverProtected">—</span><span class="name">Párrafos protegidos inspeccionados</span></div>
+</div>
+<p class="note">El análisis puede cubrir la totalidad del texto accesible, aunque el motor solo transformará las construcciones que superen sus reglas de integridad. Para detalle por párrafo y capítulo descarga el Excel: hojas <strong>Cobertura integral</strong> y <strong>Cobertura por secciones</strong>.</p>
+<h3>Diagnóstico de calidad académica</h3>
+<div class="coverage-summary" id="qualitySummary" hidden>
+<div class="coverage-tile"><span class="number" id="qualityHigh">—</span><span class="name">Párrafos con revisión prioritaria alta</span></div>
+<div class="coverage-tile"><span class="number" id="qualityMedium">—</span><span class="name">Párrafos con revisión prioritaria media</span></div>
+<div class="coverage-tile"><span class="number" id="qualityRepetitions">—</span><span class="name">Reiteraciones en tres o más párrafos</span></div>
+<div class="coverage-tile"><span class="number" id="qualityLiteral">—</span><span class="name">Alertas por diferencias literales</span></div>
+</div>
+<p class="note">Indicadores orientativos, no dictámenes de plagio. En el Excel consulta <strong>V6 prioridades académicas</strong>, <strong>V6 reiteraciones</strong> y <strong>V6 fidelidad literal</strong>. Las propuestas para párrafos con negrita/cursiva se incluyen únicamente en <strong>Plan revisión humana</strong> y no cambian automáticamente el Word.</p>
+<h3>Indicadores y control de integridad</h3><table><tbody id="metrics"></tbody></table>
+</section>
+<section class="card">
+<div class="eyebrow">Información y límites</div>
+<p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas; la redacción generada necesita verificación humana y no garantiza precisión, originalidad ni un porcentaje concreto de Turnitin.</p>
+<small>Versión V6 2026-10-12 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
+</section>
+</main>
+<script>
+"use strict";
+(function(){
+  const BASE="https://ua-auditor-018.onrender.com";
+  const $=(id)=>document.getElementById(id);
+  function state(message,level){
+    const notice=$("notice");notice.hidden=false;notice.textContent=message;
+    notice.className="panel"+(level?" "+level:"");
+  }
+  function busy(value){$("start").disabled=value;$("check").disabled=value;$("word").disabled=value;$("intensity").disabled=value;$("mode").disabled=value;$("consent").disabled=value;}
+  function errMsg(status,detail){
+    const extra=detail && (typeof detail==="string"?detail:JSON.stringify(detail));
+    if(status===401||status===403)return "Acceso denegado por el servidor (HTTP "+status+"). No envíes ni publiques claves; revisa el origen o permisos.";
+    if(status===404)return "La ruta /v1/paraphrase todavía no está disponible en Render (404).";
+    if(status===413)return "El documento excede el límite del servidor (HTTP 413).";
+    if(status===429)return "Límite de capacidad o cuota de uso alcanzada (HTTP 429). "+(extra||"");
+    if(status===503)return "El modo semántico requiere configuración del proveedor Groq en Render. Puedes usar el modo conservador.";
+    if(status>=500)return "Error del servicio Render (HTTP "+status+"). "+(extra||"");
+    return "El servicio respondió HTTP "+status+". "+(extra||"");
+  }
+  function secureUrl(value){
+    try{
+      const u=new URL(value);
+      if(u.protocol!=="https:"||u.hostname!=="ua-auditor-018.onrender.com"||!u.pathname.startsWith("/files/"))return null;
+      return u.href;
+    }catch(_){return null;}
+  }
+  let semanticReady=false;
+  function onMode(){
+    const semantic=$("mode").value==="semantico";
+    $("externalConsent").hidden=!semantic;
+    if(!semantic)$("consent").checked=false;
+    $("modeState").textContent=semantic ?
+      "Groq está configurado, pero la autorización real depende de la organización y el proyecto. Debes consentir el envío." :
+      $("mode").value==="editorial" ?
+      "Reorganiza complementos y finalidades sin enviar texto a Groq. No es un modelo generativo; verifica las propuestas en Excel." :
+      "Modo V3: sustituciones académicas conservadoras y revisión manual.";
+  }
+  $("mode").addEventListener("change",onMode);
+  async function checkCapabilities(){
+    try{
+      const response=await fetch(BASE+"/v1/paraphrase/capabilities",{mode:"cors",cache:"no-store",credentials:"omit"});
+      if(!response.ok)throw new Error("HTTP "+response.status);
+      const result=await response.json();
+      semanticReady=result.semantic_available===true;
+      const option=$("mode").querySelector('option[value="semantico"]');
+      option.disabled=!semanticReady;
+      option.textContent=semanticReady?
+        "Semántico V4 · Groq configurado (permiso pendiente de verificar)":
+        "Semántico V4 · IA no configurada en Render";
+      onMode();
+    }catch(error){
+      $("modeState").textContent="La disponibilidad de Groq no se pudo verificar; los modos editorial y conservador siguen disponibles sin clave.";
+    }
+  }
+  checkCapabilities();
+  const selections=[...document.querySelectorAll("[data-protect]")];
+  function updateCount(){
+    const active=selections.filter(c=>c.checked).length;
+    $("protectCount").textContent=active+" de "+selections.length+" categorías protegidas";
+  }
+  selections.forEach(box=>box.addEventListener("change",updateCount));
+  $("selectAll").addEventListener("click",()=>{selections.forEach(box=>box.checked=true);updateCount();});
+  updateCount();
+  $("check").addEventListener("click",async()=>{
+    busy(true);state("Comprobando disponibilidad de Render...");
+    try{
+      const response=await fetch(BASE+"/health",{method:"GET",mode:"cors",cache:"no-store",credentials:"omit"});
+      const data=await response.json();
+      if(response.ok&&data.ok===true)state("Motor disponible (HTTP 200). No necesitas clave para parafrasear un Word.","ok");
+      else state("El motor respondió HTTP "+response.status+" sin confirmar disponibilidad.","error");
+    }catch(e){state("No se pudo consultar Render. Revisa tu conexión y las cabeceras CORS. Detalle: "+String(e.message||e),"error");}
+    finally{busy(false);}
+  });
+  $("form").addEventListener("submit",async(e)=>{
+    e.preventDefault();
+    const file=$("word").files[0];
+    if(!file||!file.name.toLowerCase().endsWith(".docx")){state("Selecciona un archivo .docx válido.","error");return;}
+    if(file.size>10*1024*1024){state("El límite para el Word es 10 MB.","error");return;}
+    const data=new FormData();
+    data.append("documento",file,file.name);
+    data.append("intensidad",$("intensity").value);
+    const semantic=$("mode").value==="semantico";
+    if(semantic && !semanticReady){state("La IA semántica no está configurada en Render. Utiliza modo conservador.","error");return;}
+    if(semantic && !$("consent").checked){state("Debes autorizar explícitamente el procesamiento externo de los párrafos.","error");return;}
+    data.append("modo",semantic?"semantico":$("mode").value==="editorial"?"editorial":"conservador");
+    data.append("consentimiento_ia",semantic?"si":"no");
+    const configuration=Object.fromEntries(selections.map(box=>[box.value,box.checked]));
+    const termList=$("terms").value.split(/[\r\n;]+/).map(x=>x.trim()).filter(Boolean);
+    if(termList.length>40 || termList.some(x=>x.length>100)){
+      state("Máximo 40 términos protegidos, con hasta 100 caracteres cada uno.","error");
+      return;
+    }
+    data.append("protecciones",JSON.stringify(configuration));
+    data.append("terminos_protegidos",JSON.stringify(termList));
+    $("results").hidden=true;busy(true);
+    state(semantic?"Preparando informe integral y enviando hasta 6 párrafos elegibles a Groq…":$("mode").value==="editorial"?"Analizando el Word completo, preparando propuestas seguras y matriz por capítulos…":"Revisando integralmente el Word con el motor conservador…");
+    try{
+      const response=await fetch(BASE+"/v1/paraphrase",{
+        method:"POST",mode:"cors",credentials:"omit",
+        body:data
+      });
+      const ct=(response.headers.get("content-type")||"").toLowerCase();
+      if(!ct.includes("json")){state("El servicio respondió HTTP "+response.status+" sin JSON. Revisa la versión desplegada en Render.","error");return;}
+      const json=await response.json();
+      if(!response.ok||!json||json.ok!==true){state(errMsg(response.status,json&& (json.detail||json.error||json.message)),"error");return;}
+      const urlDocx=secureUrl(json.docxUrl);
+      const urlXlsx=secureUrl(json.xlsxUrl);
+      if(!urlDocx||!urlXlsx){state("El motor respondió correctamente, pero los enlaces de descarga no superaron la validación de seguridad.","error");return;}
+      $("downloadDocx").href=urlDocx;
+      $("downloadXlsx").href=urlXlsx;
+      $("resultTitle").textContent="Documento procesado · "+file.name;
+      $("warning").textContent=json.advertencia||"Revisa los cambios, las citas y la atribución de fuentes manualmente antes de utilizar el documento.";
+      const tbody=$("metrics");tbody.replaceChildren();
+      const resumen=json.resumen||{};
+      const coverMap=[
+        ["coverReviewed","V5 · Párrafos de cuerpo revisados"],
+        ["coverChanged","V5 · Párrafos de cuerpo con cambios"],
+        ["coverUnchanged","V5 · Párrafos de cuerpo sin cambios"],
+        ["coverProtected","V5 · Párrafos protegidos inspeccionados"]
+      ];
+      const coverageReady=coverMap.every(([id,key])=>Number.isFinite(Number(resumen[key])));
+      $("coverageSummary").hidden=!coverageReady;
+      if(coverageReady){
+        for(const [id,key] of coverMap){$(id).textContent=Number(resumen[key]).toLocaleString("es-PE");}
+      }
+      const qualityKeys=[
+        ["qualityHigh","V6 · Prioridad alta"],
+        ["qualityMedium","V6 · Prioridad media"],
+        ["qualityRepetitions","V6 · Reiteraciones en tres o más párrafos"],
+        ["qualityLiteral","V6 · Alertas de fidelidad literal"]
+      ];
+      const qualityReady=qualityKeys.every(([id,key])=>Number.isFinite(Number(resumen[key])));
+      $("qualitySummary").hidden=!qualityReady;
+      if(qualityReady){for(const [id,key] of qualityKeys){$(id).textContent=Number(resumen[key]).toLocaleString("es-PE");}}
+      for(const [name,value] of Object.entries(resumen)){
+        const tr=document.createElement("tr");
+        const th=document.createElement("th");th.scope="row";th.textContent=name;
+        const td=document.createElement("td");td.textContent=String(value);
+        tr.append(th,td);tbody.append(tr);
+      }
+      $("results").hidden=false;
+      state("Parafraseo completado y archivos generados en Render. Descárgalos desde el panel inferior.","ok");
+    }catch(error){
+      const reason=String(error&&error.message||error);
+      state("Error de conexión directa con Render. Verifica disponibilidad, CORS y red. Detalle: "+reason,"error");
+    }finally{busy(false);}
+  });
+})();
+</script>
+</body>
+</html>
