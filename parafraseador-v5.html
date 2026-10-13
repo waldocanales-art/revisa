@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="referrer" content="no-referrer">
-<title>Parafraseador UA V5 · Cobertura integral</title>
+<title>Parafraseador UA V6 · Calidad y cobertura integral</title>
 <style>
 :root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
 *{box-sizing:border-box}
@@ -65,9 +65,9 @@ small{color:#637268}
 <body>
 <header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
 <main>
-<div class="eyebrow">Versión 5 · Cobertura integral y edición académica · Sin contraseña</div>
-<h1>Parafraseador UA V5 <span class="tag">Cobertura integral</span></h1>
-<p>La V5 estudia <strong>todos los párrafos accesibles del Word</strong> (hasta 10 000 entradas por documento), incluidos capítulos, referencias y tablas protegidas. Distingue los párrafos <strong>analizados</strong> de los <strong>modificados</strong>. El modo editorial sin Groq reorganiza solo algunas expresiones cuando puede hacerlo sin comprometer el texto; el Excel identifica qué revisar manualmente. No garantiza disminuir Turnitin.</p>
+<div class="eyebrow">Versión 6 · Calidad de escritura y cobertura integral · Sin contraseña</div>
+<h1>Parafraseador UA V6 <span class="tag">Auditoría editorial</span></h1>
+<p>La V6 estudia los <strong>párrafos accesibles de toda la tesis</strong> (hasta 10 000 entradas por archivo). Además del análisis y las modificaciones, identifica <strong>reiteraciones, oraciones extensas, posibles problemas de atribución y alertas sobre datos o citas modificadas</strong>. Conserva las 11 protecciones y ofrece propuestas manuales para texto con negrita o cursiva. No equivale a una evaluación semántica ni garantiza reducir Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -129,12 +129,20 @@ small{color:#637268}
 <div class="coverage-tile"><span class="number" id="coverProtected">—</span><span class="name">Párrafos protegidos inspeccionados</span></div>
 </div>
 <p class="note">El análisis puede cubrir la totalidad del texto accesible, aunque el motor solo transformará las construcciones que superen sus reglas de integridad. Para detalle por párrafo y capítulo descarga el Excel: hojas <strong>Cobertura integral</strong> y <strong>Cobertura por secciones</strong>.</p>
+<h3>Diagnóstico de calidad académica</h3>
+<div class="coverage-summary" id="qualitySummary" hidden>
+<div class="coverage-tile"><span class="number" id="qualityHigh">—</span><span class="name">Párrafos con revisión prioritaria alta</span></div>
+<div class="coverage-tile"><span class="number" id="qualityMedium">—</span><span class="name">Párrafos con revisión prioritaria media</span></div>
+<div class="coverage-tile"><span class="number" id="qualityRepetitions">—</span><span class="name">Reiteraciones en tres o más párrafos</span></div>
+<div class="coverage-tile"><span class="number" id="qualityLiteral">—</span><span class="name">Alertas por diferencias literales</span></div>
+</div>
+<p class="note">Indicadores orientativos, no dictámenes de plagio. En el Excel consulta <strong>V6 prioridades académicas</strong>, <strong>V6 reiteraciones</strong> y <strong>V6 fidelidad literal</strong>. Las propuestas para párrafos con negrita/cursiva se incluyen únicamente en <strong>Plan revisión humana</strong> y no cambian automáticamente el Word.</p>
 <h3>Indicadores y control de integridad</h3><table><tbody id="metrics"></tbody></table>
 </section>
 <section class="card">
 <div class="eyebrow">Información y límites</div>
 <p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas; la redacción generada necesita verificación humana y no garantiza precisión, originalidad ni un porcentaje concreto de Turnitin.</p>
-<small>Versión V5 2026-10-12 · Sin contraseña. La matriz cubre párrafos accesibles mediante python-docx; cuadros flotantes, imágenes y contenido incrustado requieren revisión visual.</small>
+<small>Versión V6 2026-10-12 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
 </section>
 </main>
 <script>
@@ -263,6 +271,15 @@ small{color:#637268}
       if(coverageReady){
         for(const [id,key] of coverMap){$(id).textContent=Number(resumen[key]).toLocaleString("es-PE");}
       }
+      const qualityKeys=[
+        ["qualityHigh","V6 · Prioridad alta"],
+        ["qualityMedium","V6 · Prioridad media"],
+        ["qualityRepetitions","V6 · Reiteraciones en tres o más párrafos"],
+        ["qualityLiteral","V6 · Alertas de fidelidad literal"]
+      ];
+      const qualityReady=qualityKeys.every(([id,key])=>Number.isFinite(Number(resumen[key])));
+      $("qualitySummary").hidden=!qualityReady;
+      if(qualityReady){for(const [id,key] of qualityKeys){$(id).textContent=Number(resumen[key]).toLocaleString("es-PE");}}
       for(const [name,value] of Object.entries(resumen)){
         const tr=document.createElement("tr");
         const th=document.createElement("th");th.scope="row";th.textContent=name;
