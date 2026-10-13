@@ -163,3 +163,33 @@ jobs:
           Path("/tmp/v5-client.js").write_text("\n".join(parser.scripts))
           PY
           node --check /tmp/v5-client.js
+
+      - name: Validate V6 quality review UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          data=Path("parafraseador-v5.html").read_text()
+          for key in (
+              "Parafraseador UA V6", 'id="qualitySummary"',
+              'id="qualityHigh"', 'id="qualityMedium"',
+              'id="qualityRepetitions"', 'id="qualityLiteral"',
+              'id="coverageSummary"', 'value="editorial"',
+              "V6 prioridades académicas", "V6 fidelidad literal", "V6 reiteraciones",
+          ):
+              assert key in data,key
+          assert data.count('data-protect value=')==11
+          assert 'id="password"' not in data
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__();self.active=False;self.scripts=[]
+              def handle_starttag(self,t,attrs):
+                  if t=="script":self.active=True;self.scripts.append("")
+              def handle_endtag(self,t):
+                  if t=="script":self.active=False
+              def handle_data(self,d):
+                  if self.active:self.scripts[-1]+=d
+          parser=Parser();parser.feed(data)
+          Path("/tmp/v6.js").write_text("\n".join(parser.scripts))
+          PY
+          node --check /tmp/v6.js
