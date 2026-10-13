@@ -127,3 +127,39 @@ jobs:
           Path("/tmp/parafraseador-v4.js").write_text("\n".join(parser.parts))
           PY
           node --check /tmp/parafraseador-v4.js
+
+      - name: Validate V5 coverage UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          data = Path("parafraseador-v4.html").read_text()
+          for requirement in (
+              "Parafraseador UA V5", 'id="coverageSummary"',
+              'id="coverReviewed"', 'id="coverChanged"',
+              'id="coverUnchanged"', 'id="coverProtected"',
+              'value="editorial"', 'value="conservador"',
+              'value="semantico"', 'data-protect value=',
+              "Cobertura integral", "Cobertura por secciones",
+          ):
+              assert requirement in data, requirement
+          assert data.count('data-protect value=') == 11
+          assert 'id="password"' not in data
+          assert "app.n8n.cloud" not in data
+          class ScriptParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.scripts=[];self.active=False
+              def handle_starttag(self,t,a):
+                  if t=="script":
+                      self.active=True
+                      self.scripts.append("")
+              def handle_endtag(self,t):
+                  if t=="script":
+                      self.active=False
+              def handle_data(self,d):
+                  if self.active:self.scripts[-1]+=d
+          parser=ScriptParser();parser.feed(data)
+          Path("/tmp/v5-client.js").write_text("\n".join(parser.scripts))
+          PY
+          node --check /tmp/v5-client.js
