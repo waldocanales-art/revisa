@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="referrer" content="no-referrer">
-<title>Parafraseador UA V6 · Calidad y cobertura integral</title>
+<title>Parafraseador UA V7 · Revisión académica y validación de autoría</title>
 <style>
 :root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
 *{box-sizing:border-box}
@@ -65,9 +65,9 @@ small{color:#637268}
 <body>
 <header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
 <main>
-<div class="eyebrow">Versión 6 · Calidad de escritura y cobertura integral · Sin contraseña</div>
-<h1>Parafraseador UA V6 <span class="tag">Auditoría editorial</span></h1>
-<p>La V6 estudia los <strong>párrafos accesibles de toda la tesis</strong> (hasta 10 000 entradas por archivo). Además del análisis y las modificaciones, identifica <strong>reiteraciones, oraciones extensas, posibles problemas de atribución y alertas sobre datos o citas modificadas</strong>. Conserva las 11 protecciones y ofrece propuestas manuales para texto con negrita o cursiva. No equivale a una evaluación semántica ni garantiza reducir Turnitin.</p>
+<div class="eyebrow">Versión 7 · Validación académica y cobertura integral · Sin contraseña</div>
+<h1>Parafraseador UA V7 <span class="tag">Revisión del autor</span></h1>
+<p>La V7 estudia los <strong>párrafos accesibles de toda la tesis</strong> (hasta 10 000 entradas por archivo). Además del análisis y las modificaciones, identifica <strong>reiteraciones, oraciones extensas, posibles problemas de atribución y alertas sobre datos o citas modificadas</strong>. Conserva las 11 protecciones, incorpora hojas de validación del autor y seguimiento por capítulo y ofrece propuestas manuales para texto con negrita o cursiva. No equivale a una evaluación semántica ni garantiza reducir Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -81,9 +81,9 @@ small{color:#637268}
 <select id="mode">
 <option value="editorial" selected>Editorial estructural · recomendado, sin Groq ni IA externa</option>
 <option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
-<option value="semantico" disabled>Semántico V4 · Groq (comprobando disponibilidad)</option>
+<option value="semantico" disabled>Semántico V4 · Groq (propuestas solo en Excel; comprobando disponibilidad)</option>
 </select>
-<div id="modeState" class="mode-state" aria-live="polite">Cobertura V5 completa disponible sin Groq. Solo se reformulan las estructuras compatibles.</div>
+<div id="modeState" class="mode-state" aria-live="polite">Cobertura integral V7 disponible sin Groq. Solo se editan estructuras compatibles y se ofrece revisión por capítulo.</div>
 <div id="externalConsent" hidden>
 <div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
 <label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
@@ -118,7 +118,7 @@ small{color:#637268}
 </section>
 <section class="card" id="results" hidden>
 <div class="eyebrow">Resultado de AutorIA</div>
-<h2 id="resultTitle">Parafraseo completado</h2>
+<h2 id="resultTitle">Revisión académica completada</h2>
 <p id="warning"></p>
 <div class="links"><a id="downloadDocx" href="#" target="_blank" rel="noopener noreferrer">Descargar Word</a><a id="downloadXlsx" href="#" target="_blank" rel="noopener noreferrer">Descargar reporte Excel</a></div>
 <h3>Cobertura real del documento</h3>
@@ -136,13 +136,13 @@ small{color:#637268}
 <div class="coverage-tile"><span class="number" id="qualityRepetitions">—</span><span class="name">Reiteraciones en tres o más párrafos</span></div>
 <div class="coverage-tile"><span class="number" id="qualityLiteral">—</span><span class="name">Alertas por diferencias literales</span></div>
 </div>
-<p class="note">Indicadores orientativos, no dictámenes de plagio. En el Excel consulta <strong>V6 prioridades académicas</strong>, <strong>V6 reiteraciones</strong> y <strong>V6 fidelidad literal</strong>. Las propuestas para párrafos con negrita/cursiva se incluyen únicamente en <strong>Plan revisión humana</strong> y no cambian automáticamente el Word.</p>
+<p class="note">Indicadores orientativos, no dictámenes de plagio. En el Excel consulta <strong>V6 prioridades académicas</strong>, <strong>V6 reiteraciones</strong>, <strong>V6 fidelidad literal</strong>, <strong>V7 validación del autor</strong> y <strong>V7 estado por capítulo</strong>. Las propuestas para párrafos con negrita/cursiva se incluyen únicamente en <strong>Plan revisión humana</strong> y no cambian automáticamente el Word.</p>
 <h3>Indicadores y control de integridad</h3><table><tbody id="metrics"></tbody></table>
 </section>
 <section class="card">
 <div class="eyebrow">Información y límites</div>
-<p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas; la redacción generada necesita verificación humana y no garantiza precisión, originalidad ni un porcentaje concreto de Turnitin.</p>
-<small>Versión V6 2026-10-12 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
+<p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas. Las propuestas se registran en Excel y no se aplican automáticamente al Word; la validación académica corresponde al autor. La plataforma no calcula ni garantiza porcentajes de Turnitin.</p>
+<small>Versión V7 2026-10-13 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
 </section>
 </main>
 <script>
@@ -178,7 +178,7 @@ small{color:#637268}
     $("externalConsent").hidden=!semantic;
     if(!semantic)$("consent").checked=false;
     $("modeState").textContent=semantic ?
-      "Groq está configurado, pero la autorización real depende de la organización y el proyecto. Debes consentir el envío." :
+      "Groq puede ofrecer propuestas en Excel que NO se aplican automáticamente al Word. Debes autorizar el envío y aprobar manualmente cada propuesta." :
       $("mode").value==="editorial" ?
       "Reorganiza complementos y finalidades sin enviar texto a Groq. No es un modelo generativo; verifica las propuestas en Excel." :
       "Modo V3: sustituciones académicas conservadoras y revisión manual.";
@@ -193,8 +193,8 @@ small{color:#637268}
       const option=$("mode").querySelector('option[value="semantico"]');
       option.disabled=!semanticReady;
       option.textContent=semanticReady?
-        "Semántico V4 · Groq configurado (permiso pendiente de verificar)":
-        "Semántico V4 · IA no configurada en Render";
+        "Semántico V4 · Groq disponible (propuestas solo en Excel)":
+        "Semántico V4 · Groq no disponible (usa revisión V7 sin IA externa)";
       onMode();
     }catch(error){
       $("modeState").textContent="La disponibilidad de Groq no se pudo verificar; los modos editorial y conservador siguen disponibles sin clave.";
