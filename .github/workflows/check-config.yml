@@ -135,7 +135,7 @@ jobs:
           from html.parser import HTMLParser
           data = Path("parafraseador-v4.html").read_text()
           for requirement in (
-              "Parafraseador UA V5", 'id="coverageSummary"',
+              'value="linguistico_v8"', 'id="coverageSummary"',
               'id="coverReviewed"', 'id="coverChanged"',
               'id="coverUnchanged"', 'id="coverProtected"',
               'value="editorial"', 'value="conservador"',
