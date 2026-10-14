@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="referrer" content="no-referrer">
-<title>Parafraseador UA V7 · Revisión académica y validación de autoría</title>
+<title>Parafraseador UA V8 · Revisión lingüística integral</title>
 <style>
 :root{color-scheme:light;--green:#176d52;--ink:#182822;--muted:#54655e;--border:#dbe5df}
 *{box-sizing:border-box}
@@ -65,9 +65,9 @@ small{color:#637268}
 <body>
 <header><div class="header"><div class="logo">AUTORÍA UA · PARAFRASEADOR</div><a href="./">Auditor UA</a></div></header>
 <main>
-<div class="eyebrow">Versión 7 · Validación académica y cobertura integral · Sin contraseña</div>
-<h1>Parafraseador UA V7 <span class="tag">Revisión del autor</span></h1>
-<p>La V7 estudia los <strong>párrafos accesibles de toda la tesis</strong> (hasta 10 000 entradas por archivo). Además del análisis y las modificaciones, identifica <strong>reiteraciones, oraciones extensas, posibles problemas de atribución y alertas sobre datos o citas modificadas</strong>. Conserva las 11 protecciones, incorpora hojas de validación del autor y seguimiento por capítulo y ofrece propuestas manuales para texto con negrita o cursiva. No equivale a una evaluación semántica ni garantiza reducir Turnitin.</p>
+<div class="eyebrow">Versión 8 · Gramática y cohesión académica · Sin contraseña</div>
+<h1>Parafraseador UA V8 <span class="tag">Editor lingüístico</span></h1>
+<p>La V8 analiza los <strong>párrafos accesibles del cuerpo académico</strong> (hasta 10 000 por documento), aplica correcciones gramaticales seguras y muestra observaciones de cohesión para revisión manual. Protege citas, cifras, tablas y referencias. <strong>REVISa</strong> continúa a cargo de citas, referencias y normativas. No mide ni garantiza porcentajes de Turnitin.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
@@ -79,11 +79,12 @@ small{color:#637268}
 <section class="mode-card" aria-labelledby="modeLabel">
 <label id="modeLabel" for="mode">Tipo de revisión académica</label>
 <select id="mode">
-<option value="editorial" selected>Editorial estructural · recomendado, sin Groq ni IA externa</option>
+<option value="linguistico_v8" selected disabled>V8 · Gramática integral (comprobando disponibilidad)</option>
+<option value="editorial">Editorial estructural V7 · modo anterior</option>
 <option value="conservador">Conservador V3 · reglas verificables, sin IA externa</option>
 <option value="semantico" disabled>Semántico V4 · Groq (propuestas solo en Excel; comprobando disponibilidad)</option>
 </select>
-<div id="modeState" class="mode-state" aria-live="polite">Cobertura integral V7 disponible sin Groq. Solo se editan estructuras compatibles y se ofrece revisión por capítulo.</div>
+<div id="modeState" class="mode-state" aria-live="polite">V8: revisión gramatical por párrafos y observaciones de cohesión, sin IA externa.</div>
 <div id="externalConsent" hidden>
 <div class="privacy"><strong>Privacidad:</strong> para reformular se enviará exclusivamente el texto de hasta 6 párrafos elegibles a un proveedor externo (Groq). Se enmascaran las citas y otras cadenas protegidas reconocidas, pero podrían existir datos personales no detectados. No envíes documentos confidenciales sin autorización. La revisión humana de precisión y atribución es obligatoria.</div>
 <label class="consent"><input id="consent" type="checkbox">Autorizo explícitamente el envío de los párrafos seleccionados a Groq para recibir propuestas de redacción académica, entendiendo las limitaciones de confidencialidad.</label>
@@ -93,7 +94,7 @@ small{color:#637268}
 <div class="eyebrow">Control de integridad documental</div>
 <div class="control-header"><h2 id="protectTitle" class="protect-heading">Checklist de restricciones</h2>
 <button class="secondary" type="button" id="selectAll">Proteger todo</button></div>
-<p>Las casillas seleccionadas se envían al motor y se aplican al archivo Word. Las referencias, datos y citas deben revisarse igualmente después del procesamiento; la identificación automática tiene límites.</p>
+<p>En V8 las 11 protecciones son obligatorias. En los modos anteriores se conserva el comportamiento configurable. REVISa se encarga de la revisión normativa.</p>
 <div id="protectCount" class="note" aria-live="polite">11 de 11 categorías protegidas</div>
 <div class="protection-grid">
 <label><input type="checkbox" data-protect value="quotes" checked> Citas textuales y entre comillas</label>
@@ -142,7 +143,7 @@ small{color:#637268}
 <section class="card">
 <div class="eyebrow">Información y límites</div>
 <p>La protección documental del modo conservador es local al servidor Render. Si activas el modo semántico, los párrafos elegibles se remiten a Groq con ciertas cadenas enmascaradas. Las propuestas se registran en Excel y no se aplican automáticamente al Word; la validación académica corresponde al autor. La plataforma no calcula ni garantiza porcentajes de Turnitin.</p>
-<small>Versión V7 2026-10-13 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
+<small>Versión V8 2026-10-13 · Sin contraseña. Los diagnósticos son orientativos y requieren aprobación académica. Cuadros flotantes y contenido incrustado requieren revisión visual.</small>
 </section>
 </main>
 <script>
@@ -172,12 +173,18 @@ small{color:#637268}
       return u.href;
     }catch(_){return null;}
   }
-  let semanticReady=false;
+  let semanticReady=false, v8Ready=false;
   function onMode(){
     const semantic=$("mode").value==="semantico";
+    const v8=$("mode").value==="linguistico_v8";
+    const boxes=[...document.querySelectorAll("[data-protect]")];
+    boxes.forEach(box=>{if(v8)box.checked=true;box.disabled=v8;});
+    $("selectAll").disabled=v8;
+    if(typeof updateCount==="function")updateCount();
     $("externalConsent").hidden=!semantic;
     if(!semantic)$("consent").checked=false;
-    $("modeState").textContent=semantic ?
+    $("modeState").textContent=v8?
+      (v8Ready?"V8: gramática y cohesión; cambios documentados en Excel. Sin IA externa; REVISa conserva la auditoría normativa.":"V8 pendiente de confirmación; el modo anterior sigue disponible.") : semantic ?
       "Groq puede ofrecer propuestas en Excel que NO se aplican automáticamente al Word. Debes autorizar el envío y aprobar manualmente cada propuesta." :
       $("mode").value==="editorial" ?
       "Reorganiza complementos y finalidades sin enviar texto a Groq. No es un modelo generativo; verifica las propuestas en Excel." :
@@ -190,6 +197,11 @@ small{color:#637268}
       if(!response.ok)throw new Error("HTTP "+response.status);
       const result=await response.json();
       semanticReady=result.semantic_available===true;
+      v8Ready=result.linguistico_v8_available===true;
+      const optV8=$("mode").querySelector('option[value="linguistico_v8"]');
+      optV8.disabled=!v8Ready;
+      optV8.textContent=v8Ready?"V8 · Gramática y cohesión integral (sin IA externa)":"V8 · No disponible en servidor";
+      if(!v8Ready&&$("mode").value==="linguistico_v8")$("mode").value="editorial";
       const option=$("mode").querySelector('option[value="semantico"]');
       option.disabled=!semanticReady;
       option.textContent=semanticReady?
@@ -230,7 +242,8 @@ small{color:#637268}
     const semantic=$("mode").value==="semantico";
     if(semantic && !semanticReady){state("La IA semántica no está configurada en Render. Utiliza modo conservador.","error");return;}
     if(semantic && !$("consent").checked){state("Debes autorizar explícitamente el procesamiento externo de los párrafos.","error");return;}
-    data.append("modo",semantic?"semantico":$("mode").value==="editorial"?"editorial":"conservador");
+    if($("mode").value==="linguistico_v8"&&!v8Ready){state("V8 no está disponible en Render.","error");return;}
+    data.append("modo",$("mode").value);
     data.append("consentimiento_ia",semantic?"si":"no");
     const configuration=Object.fromEntries(selections.map(box=>[box.value,box.checked]));
     const termList=$("terms").value.split(/[\r\n;]+/).map(x=>x.trim()).filter(Boolean);
@@ -241,7 +254,7 @@ small{color:#637268}
     data.append("protecciones",JSON.stringify(configuration));
     data.append("terminos_protegidos",JSON.stringify(termList));
     $("results").hidden=true;busy(true);
-    state(semantic?"Preparando informe integral y enviando hasta 6 párrafos elegibles a Groq…":$("mode").value==="editorial"?"Analizando el Word completo, preparando propuestas seguras y matriz por capítulos…":"Revisando integralmente el Word con el motor conservador…");
+    state($("mode").value==="linguistico_v8"?"Revisando todos los párrafos del cuerpo y aplicando correcciones gramaticales seguras…":semantic?"Preparando propuestas en Excel para hasta 6 párrafos con Groq…":$("mode").value==="editorial"?"Analizando el Word completo, preparando propuestas seguras y matriz por capítulos…":"Revisando integralmente el Word con el motor conservador…");
     try{
       const response=await fetch(BASE+"/v1/paraphrase",{
         method:"POST",mode:"cors",credentials:"omit",
