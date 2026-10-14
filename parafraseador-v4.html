@@ -67,12 +67,13 @@ small{color:#637268}
 <main>
 <div class="eyebrow">Versión 8 · Gramática y cohesión académica · Sin contraseña</div>
 <h1>Parafraseador UA V8 <span class="tag">Editor lingüístico</span></h1>
-<p>La V8 analiza los <strong>párrafos accesibles del cuerpo académico</strong> (hasta 10 000 por documento), aplica correcciones gramaticales seguras y muestra observaciones de cohesión para revisión manual. Protege citas, cifras, tablas y referencias. <strong>REVISa</strong> continúa a cargo de citas, referencias y normativas. No mide ni garantiza porcentajes de Turnitin.</p>
+<p>La V8 analiza los <strong>párrafos accesibles del cuerpo académico</strong> (hasta 10 000 por documento), aplica correcciones gramaticales seguras y muestra observaciones de cohesión para revisión manual. La intensidad <strong>alta</strong> está preseleccionada; conserva citas, cifras, tablas y referencias. <strong>REVISa</strong> continúa a cargo de citas, referencias y normativas. No mide ni garantiza porcentajes de Turnitin.</p>
+<p class="note"><strong>Alcance importante:</strong> las correcciones automáticas V8 son conservadoras. Una reformulación contextual profunda, como la revisión supervisada de un trabajo completo, requiere aprobación académica de cada propuesta y no puede garantizarse mediante estas reglas.</p>
 <section class="card">
 <form id="form">
 <div class="grid">
 <div><label for="word">Documento Word (.docx)</label><input id="word" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required><div class="note">Máximo 10 MB; utiliza documentos de prueba sin datos sensibles para la primera comprobación.</div></div>
-<div><label for="intensity">Intensidad</label><select id="intensity"><option value="baja">Baja · sustituciones limitadas</option><option value="media" selected>Media · recomendada</option><option value="alta">Alta · más expresiones verificables</option></select></div>
+<div><label for="intensity">Intensidad</label><select id="intensity"><option value="baja">Baja · sustituciones limitadas</option><option value="media">Media · revisión limitada</option><option value="alta" selected>Alta · revisión gramatical reforzada (recomendada)</option></select></div>
 <div><label>Acceso libre</label><div class="panel ok">Sin usuario y sin contraseña</div><div class="note">Límites automáticos de tamaño y uso para proteger el servicio institucional.</div></div>
 <div><label>Motor conectado</label><div class="panel">AutorIA Render · /v1/paraphrase</div><div class="note">Sin llamadas a n8n y sin solicitud de clave API.</div></div>
 </div>
