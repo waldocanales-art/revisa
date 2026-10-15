@@ -14,9 +14,9 @@
   window.AUDITOR_UA_CONFIG = {
     appName: "Auditor UA",
     institution: "Universidad Autónoma del Perú",
-    version: "fix-2026-10-12",
+    version: "REVISa-V17-2026-10-15",
     apiBase: RENDER_BASE,
-    auditEngine: "AutorIA-018-088",
+    auditEngine: "AutorIA-018-088-024-025",
     paraphraseBase: RENDER_BASE,
   };
   const rawFetch = window.fetch.bind(window);
@@ -105,16 +105,21 @@
       return jsonResult({ ok: false, error: "Selecciona un documento Word .docx válido." });
     }
     // Límite preventivo de la interfaz, para instancia de 512 MiB.
-    if (file.size > 10 * 1024 * 1024) {
-      return jsonResult({ ok: false, error: "Este motor admite por ahora archivos de hasta 10 MB para reducir fallos de memoria. Utiliza la pestaña Compresor." });
+    if (file.size > 30 * 1024 * 1024) {
+      return jsonResult({ ok: false, error: "La auditoría admite archivos de hasta 30 MB. Para documentos mayores (por ejemplo el equipo 234), reduce imágenes con el Compresor y vuelve a cargar. No se eliminará contenido científico." });
     }
-    const norma = originalForm.get("norma") === "018" ? "018" : "088";
+    const norma = String(originalForm.get("norma") || "");
+    if (!["018", "088", "024", "025"].includes(norma)) {
+      return jsonResult({ ok: false, error: "Seleccione una combinación normativa válida (018+023, 088+023, 018+024 o 018+025)." });
+    }
+    const guia = norma === "088" ? "088-2023-VRI-UA" : "018-2024-VRI-UA";
+    const estilo = (norma === "024" || norma === "025" ? norma : "023") + "-2024-VRI-UA";
     const token = await accessKey();
     if (!token) return jsonResult({ ok: false, error: "Auditoría cancelada. Debes ingresar la clave API de AutorIA." });
     const payload = new FormData();
     payload.append("documento", file, file.name);
-    payload.append("guia", norma === "018" ? "018-2024-VRI-UA" : "088-2023-VRI-UA");
-    payload.append("guia_estilo", "023-2024-VRI-UA");
+    payload.append("guia", guia);
+    payload.append("guia_estilo", estilo);
     payload.append("caso", file.name);
     payload.append("enfoque", "");
     const address = RENDER_BASE + "/v1/audit/" + norma;
@@ -156,6 +161,8 @@
     return jsonResult(Object.assign({}, data, {
       originalName: file.name,
       norma: norma,
+      guia: guia,
+      guia_estilo: estilo,
       docxUrl: docxUrl,
       xlsxUrl: xlsxUrl,
     }));
