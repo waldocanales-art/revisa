@@ -14,7 +14,7 @@
   window.AUDITOR_UA_CONFIG = {
     appName: "Auditor UA",
     institution: "Universidad Autónoma del Perú",
-    version: "REVISa-V18.3-2026-10-15",
+    version: "REVISa-V18.5-2026-10-16",
     apiBase: RENDER_BASE,
     auditEngine: "AutorIA-018-088-024-025",
     paraphraseBase: RENDER_BASE,
