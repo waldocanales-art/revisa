@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REViSA | Guía 008 · Enfermería</title>
+<style>body{font:16px system-ui,sans-serif;background:#f6f4f1;color:#252525;margin:0}main{max-width:720px;margin:2rem auto;padding:1.6rem;background:white;border-radius:12px}h1{color:#b95c10}label{display:block;margin:1rem 0 .4rem;font-weight:600}input,button{font:inherit}input[type=password]{width:95%;padding:.6rem;border:1px solid #aaa;border-radius:5px}button{background:#b95c10;color:white;border:0;border-radius:6px;padding:.8rem 1.2rem;margin-top:1rem}button:disabled{opacity:.5}a{color:#a44c08}small{display:block;line-height:1.5;color:#555}#estado{white-space:pre-wrap}li{margin:.7rem 0}</style>
+</head><body><main><a href="./">← Volver a REViSA</a>
+<h1>Segundas Especialidades en Enfermería</h1>
+<p><strong>Guía 008-2026-VRI-UA · Vancouver (Res. 024)</strong></p>
+<p>Perfil adicional para proyectos de investigación o aplicación. No sustituye las guías de maestría ni se aplica automáticamente a otras especialidades. Versión piloto.</p>
+<form id="form"><label for="doc">Trabajo Word (.docx)</label><input required id="doc" type="file" accept=".docx">
+<label for="key">Clave institucional de auditoría</label><input id="key" type="password" autocomplete="off" required>
+<small>Se utiliza solo para esta solicitud y no se almacena.</small>
+<label><input id="scope" type="checkbox" required> Confirmo que es un proyecto de Segunda Especialidad en Enfermería, sujeto a la Guía 008.</label>
+<button id="send" type="submit">Revisar con Guía 008</button></form>
+<p id="estado" role="status" aria-live="polite"></p><ul id="files"></ul>
+<small>La propuesta editorial y el informe no equivalen a aprobación académica, autenticación bibliográfica ni validación Turnitin. Revisar los hallazgos con el asesor.</small>
+</main><script>
+const base="https://ua-auditor-018.onrender.com", form=document.getElementById("form"), estado=document.getElementById("estado"), files=document.getElementById("files"), send=document.getElementById("send");
+form.addEventListener("submit",async(e)=>{
+ e.preventDefault();files.replaceChildren();send.disabled=true;estado.textContent="Consultando el motor 008…";
+ const key=document.getElementById("key"), token=key.value.trim();key.value="";
+ try{
+ const doc=document.getElementById("doc").files[0];
+ if(!doc||!doc.name.toLowerCase().endsWith(".docx")||doc.size>30*1024*1024)throw Error("Seleccione un Word DOCX de hasta 30 MB.");
+ const data=new FormData();data.append("documento",doc);data.append("programa","enfermeria_segunda_especialidad");data.append("tipo_documento","proyecto");data.append("guia","008-2026-VRI-UA");data.append("guia_estilo","024-2024-VRI-UA");
+ const res=await fetch(base+"/v1/audit/008",{method:"POST",headers:{"X-API-Key":token},body:data,cache:"no-store"});
+ if(res.status===404)throw Error("El perfil 008 todavía no está desplegado en este servidor.");
+ if(!res.ok)throw Error("El motor devolvió HTTP "+res.status+". Revise acceso, alcance y tamaño del Word.");
+ const obj=await res.json();if(!obj.ok||obj.guide!=="008-2026-VRI-UA")throw Error("Respuesta no válida para la Guía 008.");
+ estado.textContent="Auditoría completada. Estado: "+obj.status+" — no certificado.";
+ const labels={bundle_zip:"Descargar ZIP completo",corrected_docx:"Word propuesto",audit_xlsx:"Matriz Excel",critical_report:"Informe crítico"};
+ for(const [k,label] of Object.entries(labels)){const f=obj.files?.[k];if(!f)continue;const u=new URL(f.url,base);if(u.origin!==base)continue;const li=document.createElement("li"),a=document.createElement("a");a.href=u.href;a.textContent=label;li.append(a);files.append(li);}
+ }catch(err){estado.textContent=err.message;}finally{send.disabled=false;}
+});
+</script></body></html>
